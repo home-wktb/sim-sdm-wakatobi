@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIM-SDM Pariwisata & Sertifikasi LSP - Kabupaten Wakatobi</title>
+    <style>
+        :root { --primary: #0f4c81; --secondary: #008080; --gold: #b45309; --bg: #f4f7f6; --card: #ffffff; --text: #333333; --border: #dce4ec; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        header { background: var(--primary); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        header h1 { margin: 0; font-size: 1.3rem; }
+        .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .year-selector { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; }
+        .year-selector select { padding: 5px 10px; border-radius: 4px; border: none; font-weight: bold; color: var(--primary); }
+        .container { max-width: 1350px; margin: 18px auto; padding: 0 15px; }
+        .sync-badge { background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
+
+        /* Toolbar Atas yang Menarik */
+        .toolbar-top {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+            border: 1px solid #cfe2ff;
+            border-left: 5px solid var(--primary);
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.08);
+        }
+        .search-box { flex: 1; min-width: 260px; display: flex; align-items: center; position: relative; }
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            background: #ffffff;
+            transition: all 0.2s;
+        }
+        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.12); }
+        .search-icon { position: absolute; left: 12px; color: #64748b; font-size: 0.95rem; pointer-events: none; }
+        .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .action-buttons button { border-radius: 7px; padding: 9px 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+        .action-buttons button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.12); }
+
+        /* KPI Grid Lebih Ramping & Kecil */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .kpi-card {
+            background: var(--card);
+            padding: 10px 14px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .kpi-card.lsp { border-left-color: #d97706; }
+        .kpi-card h3 { margin: 0; font-size: 0.8rem; color: #555; font-weight: 600; }
+        .kpi-card .number { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+
+        .visual-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 18px; margin-bottom: 20px; }
+        @media (max-width: 900px) { .visual-grid { grid-template-columns: 1fr; } }
+        .panel-box { background: var(--card); padding: 18px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .panel-title { margin: 0 0 12px 0; font-size: 1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .pie-wrapper { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .legend-list { flex: 1; min-width: 260px; max-height: 310px; overflow-y: auto; }
+        .legend-wrapper { border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; overflow: hidden; background: #fff; }
+        .legend-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; }
+        .legend-item:hover { background: #f1f5f9; }
+        .keg-detail-box { display: none; background: #f8fafc; padding: 10px 12px; border-top: 1px dashed #cbd5e1; font-size: 0.81rem; }
+        .keg-meta { color: #475569; margin-bottom: 6px; line-height: 1.45; }
+        .keg-peserta-ol { margin: 4px 0 0 0; padding-left: 18px; color: #1e293b; }
+        .keg-peserta-ol li { margin-bottom: 3px; }
+        .color-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; margin-right: 8px; flex-shrink: 0; }
+        .lsp-badge-tag { background: #fef3c7; color: #b45309; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; }
+        .mini-participant-list { max-height: 310px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .mini-card { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #d97706; padding: 9px 12px; border-radius: 6px; font-size: 0.84rem; }
+        .mini-card strong { color: #92400e; font-size: 0.9rem; }
+        input, select { padding: 9px 12px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.93rem; }
+        button { padding: 8px 13px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 0.86rem; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-info { background: var(--secondary); color: white; }
+        .btn-success { background: #218838; color: white; }
+        .btn-warning { background: #e0a800; color: #212529; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-purple { background: #6f42c1; color: white; }
+        .btn-light { background: #ffffff; color: var(--primary); border: 1px solid #cbd5e1; }
+        .btn-sm { padding: 5px 9px; font-size: 0.8rem; }
+        .admin-only { display: none; }
+        .table-container { background: var(--card); border-radius: 8px; overflow-x: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 11px 13px; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: top; }
+        th { background: #eef2f5; color: var(--primary); font-weight: 600; white-space: nowrap; }
+        tr:hover { background: #f9fbfc; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; background: #e0f2f1; color: #00695c; cursor: pointer; display: inline-block; }
+        .badge-lsp { padding: 4px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; background: #fef3c7; color: #b45309; display: inline-block; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 22px; border-radius: 8px; width: 92%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
+        .close { font-size: 1.5rem; cursor: pointer; color: #888; }
+        .form-group { margin-bottom: 11px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.86rem; }
+        .form-group input, .form-group select { width: 100%; box-sizing: border-box; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-row-3 { display: grid; grid-template-columns: 0.8fr 1.2fr 1fr; gap: 10px; }
+        .history-item { padding: 10px; border-left: 3px solid var(--primary); background: #f8f9fa; margin-bottom: 8px; border-radius: 0 4px 4px 0; }
+        .drive-bar { background: #e8f0fe; border: 1px solid #c2d7fa; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.86rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>SIM-SDM Pariwisata Wakatobi</h1>
+        <small>Database Kegiatan Bidang, Peserta (KTP) & Sertifikasi Kompetensi LSP</small>
+    </div>
+    <div class="header-controls">
+        <span id="statusCloud" class="sync-badge">⏳ Menghubungkan Google Sheets...</span>
+        <div class="year-selector">
+            <label for="filterTahun">Tahun:</label>
+            <select id="filterTahun" onchange="renderDashboard()">
+                <option value="ALL">Semua Tahun</option>
+                <option value="2031">2031</option>
+                <option value="2030">2030</option>
+                <option value="2029">2029</option>
+                <option value="2028">2028</option>
+                <option value="2027">2027</option>
+                <option value="2026" selected>2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+            </select>
+        </div>
+        <button id="btnLoginOpen" class="btn-light" onclick="openModal('modalLogin')">🔒 Login Admin</button>
+        <button id="btnLogout" class="btn-danger admin-only" onclick="logoutAdmin()">🔓 Logout (sdmdispar)</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="drive-bar admin-only">
+        <div>
+            <strong>☁️ Sinkronisasi Google Sheets & Drive:</strong> Setiap perubahan otomatis tersimpan ke Google Sheets. Gunakan tombol di kanan untuk sinkron manual atau backup cadangan.
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-info btn-sm" onclick="muatDariGoogleSheets()">🔄 Muat Ulang dari Sheets</button>
+            <button class="btn-primary btn-sm" onclick="backupDatabase()">⬇️ Unduh Backup (.json)</button>
+            <button class="btn-warning btn-sm" onclick="document.getElementById('fileRestore').click()">⬆️ Restore (.json)</button>
+            <input type="file" id="fileRestore" accept=".json" style="display:none" onchange="restoreDatabase(event)">
+        </div>
+    </div>
+
+    <!-- TOOLBAR POSISI DI ATAS KPI -->
+    <div class="toolbar-top">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" onkeyup="renderDashboard()" placeholder="Cari Nama, NIK, Kecamatan, Lembaga, atau Kegiatan...">
+        </div>
+        <div class="action-buttons">
+            <button class="btn-primary admin-only" onclick="bukaFormTambah()">+ Input Manual</button>
+            <button class="btn-info admin-only" onclick="openModal('modalKegiatan')">+ Kegiatan / LSP</button>
+            <button class="btn-light" onclick="unduhFormKosong()">📄 Unduh Form Kosong</button>
+            <button class="btn-purple admin-only" onclick="document.getElementById('fileImportCsv').click()">⬆️ Upload Excel/CSV</button>
+            <input type="file" id="fileImportCsv" accept=".csv" style="display:none" onchange="importDariCsv(event)">
+            <button class="btn-success" onclick="exportToExcel()">📊 Export Rekap</button>
+        </div>
+    </div>
+
+    <!-- KPI COMPACT DI ATAS DIAGRAM PIE -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <h3>📌 Total Kegiatan (<span class="label-tahun">2026</span>)</h3>
+            <div class="number" id="kpiKegiatan">0</div>
+        </div>
+        <div class="kpi-card">
+            <h3>👥 Total Kepesertaan (<span class="label-tahun">2026</span>)</h3>
+            <div class="number" id="kpiPeserta">0</div>
+        </div>
+        <div class="kpi-card lsp">
+            <h3>🏅 Tersertifikasi LSP (<span class="label-tahun">2026</span>)</h3>
+            <div class="number" id="kpiLsp" style="color:#b45309;">0</div>
+        </div>
+        <div class="kpi-card">
+            <h3>🏢 Lembaga Terlibat (<span class="label-tahun">2026</span>)</h3>
+            <div class="number" id="kpiLembaga">0</div>
+        </div>
+    </div>
+
+    <div class="visual-grid">
+        <div class="panel-box">
+            <h3 class="panel-title">
+                <span>📊 Kegiatan Bidang (<span class="label-tahun">2026</span>)</span>
+                <small style="font-weight:normal; color:#0f4c81;">💡 Klik nama kegiatan untuk lihat peserta</small>
+            </h3>
+            <div class="pie-wrapper">
+                <canvas id="pieChartCanvas" width="215" height="215"></canvas>
+                <div class="legend-list" id="pieLegendList"></div>
+            </div>
+        </div>
+
+        <div class="panel-box">
+            <h3 class="panel-title">
+                <span style="color:#b45309;">🏅 Info SDM Tersertifikasi LSP (<span class="label-tahun">2026</span>)</span>
+                <span id="badgeJumlahLsp" class="badge-lsp">0 Orang</span>
+            </h3>
+            <div class="mini-participant-list" id="panelPesertaLsp"></div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Tahun</th>
+                    <th>Kegiatan Bidang</th>
+                    <th>Identitas Peserta (KTP)</th>
+                    <th>Asal Kecamatan & Alamat</th>
+                    <th>Kontak & Profil</th>
+                    <th>Lembaga / Usaha</th>
+                    <th>Riwayat</th>
+                    <th class="admin-only">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Login -->
+<div id="modalLogin" class="modal">
+    <div class="modal-content" style="max-width: 360px;">
+        <div class="modal-header">
+            <h3>Login Admin Bidang SDM</h3>
+            <span class="close" onclick="closeModal('modalLogin')">&times;</span>
+        </div>
+        <form onsubmit="prosesLogin(event)">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" placeholder="Masukkan username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="Masukkan password" required>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Masuk</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Input / Edit Peserta -->
+<div id="modalInput" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="judulModalPeserta">Input Data Peserta Manual</h3>
+            <span class="close" onclick="closeModal('modalInput')">&times;</span>
+        </div>
+        <form onsubmit="simpanPeserta(event)">
+            <input type="hidden" id="editIndex" value="-1">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tahun Kegiatan</label>
+                    <select id="inTahun">
+                        <option value="2031">2031</option>
+                        <option value="2030">2030</option>
+                        <option value="2029">2029</option>
+                        <option value="2028">2028</option>
+                        <option value="2027">2027</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Jenis Kelamin</label>
+                    <select id="inJk">
+                        <option value="-">-- Pilih --</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Pilih Kegiatan Bidang</label>
+                <select id="inKegiatan"></select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>NIK (16 Digit KTP)</label>
+                    <input type="text" id="inNik" maxlength="16" placeholder="Boleh dikosongkan">
+                </div>
+                <div class="form-group">
+                    <label>Nama Lengkap (KTP)</label>
+                    <input type="text" id="inNama" placeholder="Contoh: La Ode Ahmad">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Asal Kecamatan (Wakatobi)</label>
+                    <select id="inKecamatan">
+                        <option value="-">-- Pilih Kecamatan --</option>
+                        <option value="Wangi-Wangi">Wangi-Wangi</option>
+                        <option value="Wangi-Wangi Selatan">Wangi-Wangi Selatan</option>
+                        <option value="Kaledupa">Kaledupa</option>
+                        <option value="Kaledupa Selatan">Kaledupa Selatan</option>
+                        <option value="Tomia">Tomia</option>
+                        <option value="Tomia Timur">Tomia Timur</option>
+                        <option value="Binongko">Binongko</option>
+                        <option value="Togo Binongko">Togo Binongko</option>
+                        <option value="Luar Wakatobi">Luar Wakatobi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Alamat Desa / Kelurahan</label>
+                    <input type="text" id="inAlamat" placeholder="Contoh: Kel. Mandati III">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nomor Telepon / WA</label>
+                    <input type="text" id="inTelp" placeholder="Contoh: 0812xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>Pendidikan Terakhir</label>
+                    <select id="inPendidikan">
+                        <option value="-">-- Pilih --</option>
+                        <option value="SD / Sederajat">SD / Sederajat</option>
+                        <option value="SMP / Sederajat">SMP / Sederajat</option>
+                        <option value="SMA / SMK / Sederajat">SMA / SMK / Sederajat</option>
+                        <option value="Diploma (D1/D2/D3)">Diploma (D1/D2/D3)</option>
+                        <option value="Sarjana (S1 / D4)">Sarjana (S1 / D4)</option>
+                        <option value="Pascasarjana (S2/S3)">Pascasarjana (S2/S3)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pekerjaan</label>
+                    <input type="text" id="inPekerjaan" placeholder="Contoh: Pemandu Wisata">
+                </div>
+                <div class="form-group">
+                    <label>Nama Lembaga / Usaha</label>
+                    <input type="text" id="inLembaga" placeholder="Contoh: Pokdarwis Liya Togo">
+                </div>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%;">Simpan Data Peserta</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Tambah Kegiatan -->
+<div id="modalKegiatan" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Tambah Kegiatan Bidang Baru</h3>
+            <span class="close" onclick="closeModal('modalKegiatan')">&times;</span>
+        </div>
+        <form onsubmit="simpanKegiatan(event)">
+            <div class="form-group">
+                <label>Kategori Kegiatan</label>
+                <select id="kegJenis">
+                    <option value="Pelatihan">Pelatihan / Bimtek Biasa</option>
+                    <option value="Sertifikasi LSP">🏅 Sertifikasi Kompetensi (LSP)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nama Kegiatan / Skema Sertifikasi LSP</label>
+                <input type="text" id="kegNama" placeholder="Contoh: Sertifikasi Kompetensi Pemandu Wisata Selam (LSP)" required>
+            </div>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <select id="kegTanggal" required>
+                        <option value="">Tgl</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Bulan</label>
+                    <select id="kegBulan" required>
+                        <option value="">-- Pilih Bulan --</option>
+                        <option value="Januari">Januari</option>
+                        <option value="Februari">Februari</option>
+                        <option value="Maret">Maret</option>
+                        <option value="April">April</option>
+                        <option value="Mei">Mei</option>
+                        <option value="Juni">Juni</option>
+                        <option value="Juli">Juli</option>
+                        <option value="Agustus">Agustus</option>
+                        <option value="September">September</option>
+                        <option value="Oktober">Oktober</option>
+                        <option value="November">November</option>
+                        <option value="Desember">Desember</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tahun</label>
+                    <select id="kegTahun" required>
+                        <option value="2031">2031</option>
+                        <option value="2030">2030</option>
+                        <option value="2029">2029</option>
+                        <option value="2028">2028</option>
+                        <option value="2027">2027</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tempat Dilaksanakan</label>
+                    <input type="text" id="kegTempat" placeholder="Contoh: Aula Dispar / Hotel Wisata" required>
+                </div>
+                <div class="form-group">
+                    <label>Kecamatan Tempat Dilaksanakan</label>
+                    <select id="kegKecamatan" required>
+                        <option value="">-- Pilih Kecamatan --</option>
+                        <option value="Wangi-Wangi">Wangi-Wangi</option>
+                        <option value="Wangi-Wangi Selatan">Wangi-Wangi Selatan</option>
+                        <option value="Kaledupa">Kaledupa</option>
+                        <option value="Kaledupa Selatan">Kaledupa Selatan</option>
+                        <option value="Tomia">Tomia</option>
+                        <option value="Tomia Timur">Tomia Timur</option>
+                        <option value="Binongko">Binongko</option>
+                        <option value="Togo Binongko">Togo Binongko</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Nama Narasumber</label>
+                <input type="text" id="kegNarasumber" placeholder="Contoh: Dr. Ahmad Fauzi, M.Par (Bisa lebih dari 1, pisahkan koma)" required>
+            </div>
+            <button type="submit" class="btn-info" style="width: 100%;">Simpan Kegiatan</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Riwayat Pelatihan Individu -->
+<div id="modalHistory" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Deteksi Riwayat Pelatihan & Sertifikasi SDM</h3>
+            <span class="close" onclick="closeModal('modalHistory')">&times;</span>
+        </div>
+        <div id="historyDetail"></div>
+    </div>
+</div>
+
+<script>
+    const URL_GOOGLE_SHEETS = "https://script.google.com/macros/s/AKfycby6NzzB8U-roNZ-CxQTh8IUQ5tvPO4DtxV7koOW3gY-VNyCaAzogkQv-iGijmRuLtfJUQ/exec";
+
+    let isAdmin = sessionStorage.getItem('sdmdispar_auth') === 'true';
+    const paletWarna = ['#0f4c81', '#00a896', '#f3722c', '#f9c74f', '#90be6d', '#577590', '#e63946', '#8338ec', '#3a86ff', '#fb5607'];
+
+    (function isiDropdownTanggal() {
+        const selTgl = document.getElementById('kegTanggal');
+        for (let i = 1; i <= 31; i++) {
+            const opt = document.createElement('option');
+            opt.value = i < 10 ? '0' + i : '' + i;
+            opt.textContent = i;
+            selTgl.appendChild(opt);
+        }
+    })();
+
+    const defaultKegiatan = [
+        { tahun: "2024", tanggal: "15", bulan: "Mei", tempat: "Aula Dinas Pariwisata", kecamatan: "Wangi-Wangi", narasumber: "Tim Dispar Wakatobi", jenis: "Pelatihan", nama: "Pelatihan Tata Kelola Homestay" },
+        { tahun: "2025", tanggal: "20", bulan: "Agustus", tempat: "Hotel Patuno", kecamatan: "Wangi-Wangi", narasumber: "Asesor LSP Pariwisata", jenis: "Sertifikasi LSP", nama: "Sertifikasi Kompetensi Pemandu Wisata Alam (LSP)" },
+        { tahun: "2025", tanggal: "10", bulan: "Oktober", tempat: "Balai Pertemuan Kaledupa", kecamatan: "Kaledupa", narasumber: "Praktisi Digital Marketing", jenis: "Pelatihan", nama: "Bimtek Digital Marketing Desa Wisata" },
+        { tahun: "2026", tanggal: "12", bulan: "Juni", tempat: "Gedung Pesanggrahan", kecamatan: "Wangi-Wangi Selatan", narasumber: "Kemenparekraf / Dispar", jenis: "Pelatihan", nama: "Fasilitasi Pengembangan Kompetensi SDM Ekraf" },
+        { tahun: "2026", tanggal: "25", bulan: "November", tempat: "Wakatobi Dive Resort", kecamatan: "Tomia Timur", narasumber: "LSP Perhotelan Indonesia", jenis: "Sertifikasi LSP", nama: "Sertifikasi Kompetensi Tata Graha & Front Office Hotel (LSP)" }
+    ];
+
+    const defaultPeserta = [
+        { tahun: "2024", kegiatan: "Pelatihan Tata Kelola Homestay", nik: "7407011205900001", nama: "Wa Ode Siti Rahma", jk: "Perempuan", kecamatan: "Wangi-Wangi", alamat: "Kel. Pongo", telp: "081244556677", pendidikan: "Sarjana (S1 / D4)", pekerjaan: "Pengelola Homestay", lembaga: "Homestay Bajo Indah" },
+        { tahun: "2026", kegiatan: "Fasilitasi Pengembangan Kompetensi SDM Ekraf", nik: "7407011205900001", nama: "Wa Ode Siti Rahma", jk: "Perempuan", kecamatan: "Wangi-Wangi", alamat: "Kel. Pongo", telp: "081244556677", pendidikan: "Sarjana (S1 / D4)", pekerjaan: "Pengelola Homestay", lembaga: "Homestay Bajo Indah" },
+        { tahun: "2026", kegiatan: "Sertifikasi Kompetensi Tata Graha & Front Office Hotel (LSP)", nik: "7407051911950003", nama: "Nurul Hidayah", jk: "Perempuan", kecamatan: "Kaledupa", alamat: "Desa Sombano", telp: "082199887766", pendidikan: "Diploma (D1/D2/D3)", pekerjaan: "Resepsionis Hotel", lembaga: "Penginapan Kaledupa" },
+        { tahun: "2025", kegiatan: "Sertifikasi Kompetensi Pemandu Wisata Alam (LSP)", nik: "7407020508880002", nama: "La Ode Muhamad Yusuf", jk: "Laki-laki", kecamatan: "Wangi-Wangi Selatan", alamat: "Kel. Mandati III", telp: "085211223344", pendidikan: "SMA / SMK / Sederajat", pekerjaan: "Pemandu Wisata", lembaga: "HPI Wakatobi" }
+    ];
+
+    let daftarKegiatan = JSON.parse(localStorage.getItem('sim_sdm_kegiatan')) || defaultKegiatan;
+    let dataPeserta = JSON.parse(localStorage.getItem('sim_sdm_peserta')) || defaultPeserta;
+
+    function updateStatusCloud(teks, warnaBg) {
+        const badge = document.getElementById('statusCloud');
+        if (badge) {
+            badge.textContent = teks;
+            badge.style.background = warnaBg || 'rgba(255,255,255,0.2)';
+        }
+    }
+
+    function simpanKeBrowser() {
+        localStorage.setItem('sim_sdm_kegiatan', JSON.stringify(daftarKegiatan));
+        localStorage.setItem('sim_sdm_peserta', JSON.stringify(dataPeserta));
+
+        if (URL_GOOGLE_SHEETS.startsWith("https://")) {
+            updateStatusCloud("⏳ Menyimpan ke Google Sheets...", "#d97706");
+            fetch(URL_GOOGLE_SHEETS, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ kegiatan: daftarKegiatan, peserta: dataPeserta })
+            }).then(() => {
+                updateStatusCloud("🟢 Tersimpan di Google Sheets", "#15803d");
+            }).catch(() => {
+                updateStatusCloud("⚠️ Gagal Kirim (Mode Lokal)", "#b91c1c");
+            });
+        } else {
+            updateStatusCloud("🟡 Mode Lokal (URL Sheets Belum Diisi)", "#b45309");
+        }
+    }
+
+    async function muatDariGoogleSheets() {
+        if (!URL_GOOGLE_SHEETS.startsWith("https://")) {
+            updateStatusCloud("🟡 Mode Lokal (URL Sheets Belum Diisi)", "#b45309");
+            return;
+        }
+        updateStatusCloud("⏳ Memuat dari Google Sheets...", "#d97706");
+        try {
+            const res = await fetch(URL_GOOGLE_SHEETS);
+            const data = await res.json();
+            if (data.status === "success") {
+                if (data.kegiatan && data.kegiatan.length > 0) daftarKegiatan = data.kegiatan;
+                if (data.peserta && data.peserta.length > 0) dataPeserta = data.peserta;
+                localStorage.setItem('sim_sdm_kegiatan', JSON.stringify(daftarKegiatan));
+                localStorage.setItem('sim_sdm_peserta', JSON.stringify(dataPeserta));
+                updateDropdownKegiatan();
+                renderDashboard();
+                updateStatusCloud("🟢 Terhubung Google Sheets", "#15803d");
+            }
+        } catch (err) {
+            updateStatusCloud("⚠️ Offline (Memakai Data Terakhir)", "#b91c1c");
+        }
+    }
+
+    function cekStatusLogin() {
+        const elemenAdmin = document.querySelectorAll('.admin-only');
+        elemenAdmin.forEach(el => {
+            if (el.tagName === 'TH' || el.tagName === 'TD') el.style.display = isAdmin ? 'table-cell' : 'none';
+            else if (el.classList.contains('drive-bar')) el.style.display = isAdmin ? 'flex' : 'none';
+            else el.style.display = isAdmin ? 'inline-block' : 'none';
+        });
+        document.getElementById('btnLoginOpen').style.display = isAdmin ? 'none' : 'inline-block';
+    }
+
+    function prosesLogin(e) {
+        e.preventDefault();
+        const u = document.getElementById('loginUser').value.trim();
+        const p = document.getElementById('loginPass').value.trim();
+        if (u === 'sdmdispar' && p === 'sdmdispar123') {
+            isAdmin = true;
+            sessionStorage.setItem('sdmdispar_auth', 'true');
+            closeModal('modalLogin');
+            e.target.reset();
+            renderDashboard();
+            alert('Login berhasil! Seluruh fitur Admin telah aktif.');
+        } else {
+            alert('Username atau Password salah!');
+        }
+    }
+
+    function logoutAdmin() {
+        isAdmin = false;
+        sessionStorage.removeItem('sdmdispar_auth');
+        renderDashboard();
+    }
+
+    function cekApakahKegiatanLsp(namaKegiatan) {
+        const kegObj = daftarKegiatan.find(k => k.nama === namaKegiatan);
+        if (kegObj && kegObj.jenis === 'Sertifikasi LSP') return true;
+        return namaKegiatan && namaKegiatan.toLowerCase().includes('lsp');
+    }
+
+    function toggleDetailKegiatan(index) {
+        const box = document.getElementById(`detail-keg-${index}`);
+        const arrow = document.getElementById(`arrow-keg-${index}`);
+        if (box.style.display === 'block') {
+            box.style.display = 'none';
+            if (arrow) arrow.textContent = '▼';
+        } else {
+            box.style.display = 'block';
+            if (arrow) arrow.textContent = '▲';
+        }
+    }
+
+    function gambarPieChart(tahunDipilih) {
+        const canvas = document.getElementById('pieChartCanvas');
+        const ctx = canvas.getContext('2d');
+        const legendDiv = document.getElementById('pieLegendList');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        legendDiv.innerHTML = '';
+
+        const kegMaster = daftarKegiatan.filter(k => tahunDipilih === 'ALL' || k.tahun === tahunDipilih).map(k => k.nama);
+        const kegPeserta = dataPeserta.filter(p => tahunDipilih === 'ALL' || p.tahun === tahunDipilih).map(p => p.kegiatan);
+        const semuaKegTahun = [...new Set([...kegMaster, ...kegPeserta])].filter(n => n && n !== '-');
+
+        if (semuaKegTahun.length === 0) {
+            ctx.fillStyle = '#e2e8f0';
+            ctx.beginPath(); ctx.arc(107, 107, 92, 0, Math.PI * 2); ctx.fill();
+            legendDiv.innerHTML = '<p style="color:#888; font-size:0.86rem;">Belum ada kegiatan di tahun ini.</p>';
+            return;
+        }
+
+        const dataChart = semuaKegTahun.map((namaKeg, idx) => {
+            const listPesertaKeg = dataPeserta.filter(p => (tahunDipilih === 'ALL' || p.tahun === tahunDipilih) && p.kegiatan === namaKeg);
+            const infoKeg = daftarKegiatan.find(k => k.nama === namaKeg && (tahunDipilih === 'ALL' || k.tahun === tahunDipilih)) || daftarKegiatan.find(k => k.nama === namaKeg) || {};
+            const isLsp = cekApakahKegiatanLsp(namaKeg);
+            return {
+                nama: namaKeg,
+                jumlah: listPesertaKeg.length,
+                pesertaList: listPesertaKeg,
+                info: infoKeg,
+                isLsp: isLsp,
+                warna: paletWarna[idx % paletWarna.length]
+            };
+        });
+
+        const totalNilai = dataChart.reduce((sum, item) => sum + (item.jumlah > 0 ? item.jumlah : 1), 0);
+        let sudutAwal = -0.5 * Math.PI;
+
+        dataChart.forEach((item, idx) => {
+            const bobot = item.jumlah > 0 ? item.jumlah : 1;
+            const sudutIrisan = (bobot / totalNilai) * 2 * Math.PI;
+            const sudutAkhir = sudutAwal + sudutIrisan;
+
+            ctx.beginPath();
+            ctx.moveTo(107, 107);
+            ctx.arc(107, 107, 94, sudutAwal, sudutAkhir);
+            ctx.closePath();
+            ctx.fillStyle = item.warna;
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+            sudutAwal = sudutAkhir;
+
+            const tagLsp = item.isLsp ? `<span class="lsp-badge-tag">LSP</span>` : '';
+            const tglStr = [item.info.tanggal, item.info.bulan, item.info.tahun].filter(Boolean).join(' ');
+            const metaParts = [];
+            if (tglStr) metaParts.push(`📅 <strong>Waktu:</strong> ${tglStr}`);
+            if (item.info.tempat || item.info.kecamatan) {
+                const lok = [item.info.tempat, item.info.kecamatan ? `Kec. ${item.info.kecamatan}` : ''].filter(Boolean).join(', ');
+                metaParts.push(`📍 <strong>Lokasi:</strong> ${lok}`);
+            }
+            if (item.info.narasumber) metaParts.push(`🎤 <strong>Narasumber:</strong> ${item.info.narasumber}`);
+
+            const metaHTML = metaParts.length > 0 ? `<div class="keg-meta">${metaParts.join('<br>')}</div>` : '';
+            const pesertaHTML = item.pesertaList.length > 0
+                ? `<ol class="keg-peserta-ol">${item.pesertaList.map(p => `<li><strong>${p.nama || '(Tanpa Nama)'}</strong> <span style="color:#64748b;">(${p.kecamatan || '-'} - ${p.lembaga || '-'})</span></li>`).join('')}</ol>`
+                : `<div style="color:#888; font-style:italic; margin-top:4px;">Belum ada peserta terdaftar pada kegiatan ini.</div>`;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'legend-wrapper';
+            wrapper.innerHTML = `
+                <div class="legend-item" onclick="toggleDetailKegiatan(${idx})" title="Klik untuk melihat detail & daftar peserta">
+                    <div style="display:flex; align-items:center;">
+                        <span class="color-dot" style="background:${item.warna};"></span>
+                        <span><strong>${item.nama}</strong>${tagLsp}</span>
+                    </div>
+                    <div style="margin-left:8px; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                        <strong>${item.jumlah} Org</strong>
+                        <span id="arrow-keg-${idx}" style="font-size:0.72rem; color:#64748b;">▼</span>
+                    </div>
+                </div>
+                <div id="detail-keg-${idx}" class="keg-detail-box">
+                    ${metaHTML}
+                    <div style="font-weight:600; color:#0f4c81; margin-top:4px;">Daftar Peserta (${item.jumlah} Orang):</div>
+                    ${pesertaHTML}
+                </div>
+            `;
+            legendDiv.appendChild(wrapper);
+        });
+    }
+
+    function tampilkanPanelSertifikasiLsp(tahunDipilih) {
+        const container = document.getElementById('panelPesertaLsp');
+        const badge = document.getElementById('badgeJumlahLsp');
+
+        const pesertaLsp = dataPeserta.filter(p => {
+            const matchTahun = (tahunDipilih === 'ALL') || (p.tahun === tahunDipilih);
+            return matchTahun && cekApakahKegiatanLsp(p.kegiatan);
+        });
+
+        document.getElementById('kpiLsp').textContent = pesertaLsp.length;
+        badge.textContent = `${pesertaLsp.length} Orang`;
+
+        if (pesertaLsp.length === 0) {
+            container.innerHTML = '<p style="color:#777; font-size:0.86rem; text-align:center; margin-top:45px;">Belum ada data peserta sertifikasi LSP pada tahun terpilih.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        pesertaLsp.forEach((p, i) => {
+            const card = document.createElement('div');
+            card.className = 'mini-card';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>${i + 1}. ${p.nama || '(Tanpa Nama)'}</strong>
+                    <span style="background:#fde68a; color:#92400e; padding:1px 6px; border-radius:4px; font-size:0.75rem; font-weight:bold;">Tahun ${p.tahun}</span>
+                </div>
+                <div style="color:#333; margin-top:3px; font-weight:600;">🏅 ${p.kegiatan}</div>
+                <div style="color:#555; font-size:0.81rem; margin-top:2px;">NIK: ${p.nik || '-'} | Kec. ${p.kecamatan || '-'} | 🏢 ${p.lembaga || '-'}</div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function updateDropdownKegiatan() {
+        const select = document.getElementById('inKegiatan');
+        select.innerHTML = '';
+        daftarKegiatan.forEach(k => {
+            let opt = document.createElement('option');
+            opt.value = k.nama;
+            const labelJenis = k.jenis === 'Sertifikasi LSP' ? ' [LSP]' : '';
+            const infoKec = k.kecamatan ? ` - Kec. ${k.kecamatan}` : '';
+            opt.textContent = `[${k.tahun}]${labelJenis} ${k.nama}${infoKec}`;
+            select.appendChild(opt);
+        });
+    }
+
+    function renderDashboard() {
+        const tahunDipilih = document.getElementById('filterTahun').value;
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        
+        document.querySelectorAll('.label-tahun').forEach(el => el.textContent = tahunDipilih === 'ALL' ? 'Semua' : tahunDipilih);
+
+        const dataTahunIni = dataPeserta.filter(item => (tahunDipilih === 'ALL') || (item.tahun === tahunDipilih));
+        const kegMasterTahun = daftarKegiatan.filter(k => (tahunDipilih === 'ALL') || (k.tahun === tahunDipilih)).map(k => k.nama);
+        const semuaKegUnik = [...new Set([...kegMasterTahun, ...dataTahunIni.map(d => d.kegiatan)])].filter(n => n && n !== '-');
+
+        const filteredData = dataPeserta.map((item, idx) => ({ ...item, originalIndex: idx })).filter(item => {
+            const matchTahun = (tahunDipilih === 'ALL') || (item.tahun === tahunDipilih);
+            const teksGabungan = `${item.nama} ${item.nik} ${item.kecamatan} ${item.alamat} ${item.telp} ${item.pekerjaan} ${item.lembaga} ${item.kegiatan}`.toLowerCase();
+            return matchTahun && teksGabungan.includes(keyword);
+        });
+
+        const lembagaUnik = [...new Set(dataTahunIni.filter(d => d.lembaga && d.lembaga !== '-').map(d => d.lembaga))];
+
+        document.getElementById('kpiKegiatan').textContent = semuaKegUnik.length;
+        document.getElementById('kpiPeserta').textContent = dataTahunIni.length;
+        document.getElementById('kpiLembaga').textContent = lembagaUnik.length;
+
+        gambarPieChart(tahunDipilih);
+        tampilkanPanelSertifikasiLsp(tahunDipilih);
+
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        filteredData.forEach(row => {
+            const totalIkut = dataPeserta.filter(p => 
+                (row.nik && row.nik !== '-' && p.nik === row.nik) || 
+                (row.nama && row.nama !== '-' && p.nama.toLowerCase() === row.nama.toLowerCase())
+            ).length;
+
+            const isLsp = cekApakahKegiatanLsp(row.kegiatan);
+            const tagLsp = isLsp ? `<br><span class="lsp-badge-tag">🏅 Sertifikasi LSP</span>` : '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${row.tahun || '-'}</strong></td>
+                <td>${row.kegiatan || '-'}${tagLsp}</td>
+                <td><strong>${row.nama || '(Tanpa Nama)'}</strong><br><small style="color:#555">NIK: ${row.nik || '-'} | JK: ${row.jk || '-'}</small></td>
+                <td><strong>Kec. ${row.kecamatan || '-'}</strong><br><small style="color:#666">${row.alamat || '-'}</small></td>
+                <td><small>📞 ${row.telp || '-'}<br>🎓 ${row.pendidikan || '-'}<br>💼 ${row.pekerjaan || '-'}</small></td>
+                <td>${row.lembaga || '-'}</td>
+                <td><span class="badge" onclick="lihatRiwayat('${row.nik}', '${row.nama}')">${totalIkut}x Pelatihan</span></td>
+                <td class="admin-only" style="white-space:nowrap;">
+                    <button class="btn-warning btn-sm" onclick="editPeserta(${row.originalIndex})">Edit</button>
+                    <button class="btn-danger btn-sm" onclick="hapusPeserta(${row.originalIndex})">Hapus</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        cekStatusLogin();
+    }
+
+    function bukaFormTambah() {
+        document.getElementById('editIndex').value = "-1";
+        document.getElementById('judulModalPeserta').textContent = "Input Data Peserta Manual";
+        document.querySelector('#modalInput form').reset();
+        openModal('modalInput');
+    }
+
+    function editPeserta(index) {
+        const p = dataPeserta[index];
+        document.getElementById('editIndex').value = index;
+        document.getElementById('judulModalPeserta').textContent = "Edit Data Peserta";
+        document.getElementById('inTahun').value = p.tahun || "2026";
+        document.getElementById('inKegiatan').value = p.kegiatan || "";
+        document.getElementById('inNik').value = p.nik === '-' ? '' : (p.nik || '');
+        document.getElementById('inNama').value = p.nama === '-' ? '' : (p.nama || '');
+        document.getElementById('inJk').value = p.jk || "-";
+        document.getElementById('inKecamatan').value = p.kecamatan || "-";
+        document.getElementById('inAlamat').value = p.alamat === '-' ? '' : (p.alamat || '');
+        document.getElementById('inTelp').value = p.telp === '-' ? '' : (p.telp || '');
+        document.getElementById('inPendidikan').value = p.pendidikan || "-";
+        document.getElementById('inPekerjaan').value = p.pekerjaan === '-' ? '' : (p.pekerjaan || '');
+        document.getElementById('inLembaga').value = p.lembaga === '-' ? '' : (p.lembaga || '');
+        openModal('modalInput');
+    }
+
+    function simpanPeserta(e) {
+        e.preventDefault();
+        const idx = parseInt(document.getElementById('editIndex').value);
+        const objekData = {
+            tahun: document.getElementById('inTahun').value || "-",
+            kegiatan: document.getElementById('inKegiatan').value || "-",
+            nik: document.getElementById('inNik').value.trim() || "-",
+            nama: document.getElementById('inNama').value.trim() || "-",
+            jk: document.getElementById('inJk').value || "-",
+            kecamatan: document.getElementById('inKecamatan').value || "-",
+            alamat: document.getElementById('inAlamat').value.trim() || "-",
+            telp: document.getElementById('inTelp').value.trim() || "-",
+            pendidikan: document.getElementById('inPendidikan').value || "-",
+            pekerjaan: document.getElementById('inPekerjaan').value.trim() || "-",
+            lembaga: document.getElementById('inLembaga').value.trim() || "-"
+        };
+        if (idx >= 0) dataPeserta[idx] = objekData;
+        else dataPeserta.unshift(objekData);
+
+        simpanKeBrowser();
+        closeModal('modalInput');
+        renderDashboard();
+    }
+
+    function hapusPeserta(index) {
+        if (confirm(`Yakin ingin menghapus data peserta "${dataPeserta[index].nama}"?`)) {
+            dataPeserta.splice(index, 1);
+            simpanKeBrowser();
+            renderDashboard();
+        }
+    }
+
+    function simpanKegiatan(e) {
+        e.preventDefault();
+        const jns = document.getElementById('kegJenis').value;
+        const nm = document.getElementById('kegNama').value.trim();
+        const tgl = document.getElementById('kegTanggal').value;
+        const bln = document.getElementById('kegBulan').value;
+        const thn = document.getElementById('kegTahun').value;
+        const tmp = document.getElementById('kegTempat').value.trim();
+        const kec = document.getElementById('kegKecamatan').value;
+        const narsum = document.getElementById('kegNarasumber').value.trim();
+
+        daftarKegiatan.push({
+            tahun: thn,
+            tanggal: tgl,
+            bulan: bln,
+            tempat: tmp,
+            kecamatan: kec,
+            narasumber: narsum,
+            jenis: jns,
+            nama: nm
+        });
+
+        simpanKeBrowser();
+        updateDropdownKegiatan();
+        closeModal('modalKegiatan');
+        e.target.reset();
+        renderDashboard();
+        alert('Kegiatan baru beserta lokasi & narasumber berhasil ditambahkan!');
+    }
+
+    function lihatRiwayat(nik, nama) {
+        const riwayat = dataPeserta.filter(p => (nik && nik !== '-' && p.nik === nik) || (nama && nama !== '-' && p.nama.toLowerCase() === nama.toLowerCase()));
+        riwayat.sort((a, b) => b.tahun - a.tahun);
+        const profil = riwayat[0] || {};
+        let html = `<p><strong>Nama:</strong> ${profil.nama || '-'}<br><strong>NIK:</strong> ${profil.nik || '-'}<br><strong>Total Ikut:</strong> <span style="color:#0f4c81; font-weight:bold;">${riwayat.length} Kali Pelatihan/Sertifikasi</span></p><hr style="border:0; border-top:1px solid #eee; margin:12px 0;">`;
+        riwayat.forEach((r, i) => {
+            const labelLsp = cekApakahKegiatanLsp(r.kegiatan) ? ' 🏅 [Tersertifikasi LSP]' : '';
+            html += `<div class="history-item"><strong>${i + 1}. Tahun ${r.tahun} - ${r.kegiatan}${labelLsp}</strong><br><small>Kec. ${r.kecamatan || '-'} | Lembaga: ${r.lembaga}</small></div>`;
+        });
+        document.getElementById('historyDetail').innerHTML = html;
+        openModal('modalHistory');
+    }
+
+    function unduhFormKosong() {
+        const header = "Tahun;Nama Kegiatan;NIK;Nama Lengkap (KTP);Jenis Kelamin;Asal Kecamatan;Alamat Desa/Kel;No Telepon;Pendidikan Terakhir;Pekerjaan;Nama Lembaga";
+        const contoh = "2026;Sertifikasi Kompetensi Tata Graha & Front Office Hotel (LSP);7407010101900001;Contoh Nama Peserta;Laki-laki;Wangi-Wangi;Kel. Pongo;081234567890;Sarjana (S1 / D4);Staf Hotel;Hotel Wakatobi";
+        const blob = new Blob(["\ufeff" + header + "\n" + contoh + "\n"], { type: "text/csv;charset=utf-8;" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "Form_Kosong_Peserta_SDM_Wakatobi.csv";
+        a.click();
+    }
+
+    function importDariCsv(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const baris = e.target.result.split(/\r?\n/);
+            let jumlahMasuk = 0;
+            for (let i = 1; i < baris.length; i++) {
+                if (!baris[i].trim()) continue;
+                const pemisah = baris[i].includes(';') ? ';' : ',';
+                const col = baris[i].split(pemisah).map(c => c.replace(/^"|"$/g, '').trim());
+                if (col.length >= 4 && (col[2] || col[3])) {
+                    dataPeserta.unshift({
+                        tahun: col[0] || "2026",
+                        kegiatan: col[1] || "-",
+                        nik: (col[2] || "-").replace(/^'/, ''),
+                        nama: col[3] || "-",
+                        jk: col[4] || "-",
+                        kecamatan: col[5] || "-",
+                        alamat: col[6] || "-",
+                        telp: (col[7] || "-").replace(/^'/, ''),
+                        pendidikan: col[8] || "-",
+                        pekerjaan: col[9] || "-",
+                        lembaga: col[10] || "-"
+                    });
+                    jumlahMasuk++;
+                }
+            }
+            simpanKeBrowser();
+            renderDashboard();
+            event.target.value = '';
+            alert(`Berhasil mengimpor ${jumlahMasuk} data peserta!`);
+        };
+        reader.readAsText(file);
+    }
+
+    function backupDatabase() {
+        const paketData = { tanggalBackup: new Date().toISOString(), kegiatan: daftarKegiatan, peserta: dataPeserta };
+        const blob = new Blob([JSON.stringify(paketData, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `Database_SDM_Wakatobi_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+    }
+
+    function restoreDatabase(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const hasil = JSON.parse(e.target.result);
+                if (hasil.kegiatan && hasil.peserta) {
+                    daftarKegiatan = hasil.kegiatan; dataPeserta = hasil.peserta;
+                    simpanKeBrowser(); updateDropdownKegiatan(); renderDashboard();
+                    alert('Data berhasil dipulihkan!');
+                } else alert('Format file tidak sesuai!');
+            } catch (err) { alert('Gagal membaca file backup.'); }
+        };
+        reader.readAsText(file);
+    }
+
+    function exportToExcel() {
+        const tahun = document.getElementById('filterTahun').value;
+        let tableHTML = `<table border="1"><thead><tr><th>No</th><th>Tahun</th><th>Nama Kegiatan</th><th>Status LSP</th><th>NIK</th><th>Nama Lengkap</th><th>Jenis Kelamin</th><th>Asal Kecamatan</th><th>Alamat</th><th>No. Telepon</th><th>Pendidikan</th><th>Pekerjaan</th><th>Nama Lembaga</th></tr></thead><tbody>`;
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const filteredData = dataPeserta.filter(item => {
+            const matchTahun = (tahun === 'ALL') || (item.tahun === tahun);
+            const teks = `${item.nama} ${item.nik} ${item.kecamatan} ${item.alamat} ${item.telp} ${item.pekerjaan} ${item.lembaga} ${item.kegiatan}`.toLowerCase();
+            return matchTahun && teks.includes(keyword);
+        });
+        filteredData.forEach((row, i) => {
+            const statusLsp = cekApakahKegiatanLsp(row.kegiatan) ? 'Tersertifikasi LSP' : 'Pelatihan Biasa';
+            tableHTML += `<tr><td>${i + 1}</td><td>${row.tahun}</td><td>${row.kegiatan}</td><td>${statusLsp}</td><td>'${row.nik}</td><td>${row.nama}</td><td>${row.jk}</td><td>${row.kecamatan || '-'}</td><td>${row.alamat}</td><td>'${row.telp}</td><td>${row.pendidikan}</td><td>${row.pekerjaan}</td><td>${row.lembaga}</td></tr>`;
+        });
+        tableHTML += `</tbody></table>`;
+        const blob = new Blob(['\ufeff', tableHTML], { type: 'application/vnd.ms-excel' });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `Rekap_SDM_Pariwisata_Wakatobi_${tahun}.xls`;
+        a.click();
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    updateDropdownKegiatan();
+    renderDashboard();
+    muatDariGoogleSheets();
+</script>
+
+</body>
+</html>
