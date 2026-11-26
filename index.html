@@ -67,11 +67,13 @@
         .panel-box { background: var(--card); padding: 18px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .panel-title { margin: 0 0 12px 0; font-size: 1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .pie-wrapper { display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        #pieChartCanvas { cursor: pointer; }
         .legend-list { flex: 1; min-width: 260px; max-height: 310px; overflow-y: auto; }
         .legend-wrapper { border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; overflow: hidden; background: #fff; }
-        .legend-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; gap: 8px; }
+        .legend-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; font-size: 0.85rem; transition: background 0.15s; gap: 8px; }
         .legend-item:hover { background: #f1f5f9; }
-        .legend-name-wrap { display:flex; align-items:center; flex:1; min-width:0; gap:0; }
+        .legend-name-wrap { display:flex; align-items:center; flex:1; min-width:0; gap:0; cursor:pointer; }
+        .legend-name-wrap:hover .legend-name-text { text-decoration: underline; color: var(--primary); }
         .legend-name-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .legend-actions { margin-left:8px; white-space:nowrap; display:flex; align-items:center; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
         .legend-act-btn { padding:3px 7px; font-size:0.72rem; border-radius:5px; font-weight:700; }
@@ -96,6 +98,8 @@
         .btn-light { background: #ffffff; color: var(--primary); border: 1px solid #cbd5e1; }
         .btn-sm { padding: 5px 9px; font-size: 0.8rem; }
         .admin-only { display: none; }
+        
+        /* Table & Pagination */
         .table-container { background: var(--card); border-radius: 8px; overflow-x: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th, td { padding: 11px 13px; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: top; }
@@ -103,6 +107,11 @@
         tr:hover { background: #f9fbfc; }
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; background: #e0f2f1; color: #00695c; cursor: pointer; display: inline-block; }
         .badge-lsp { padding: 4px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: bold; background: #fef3c7; color: #b45309; display: inline-block; }
+        
+        .pagination-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fff; border-top: 1px solid var(--border); border-radius: 0 0 8px 8px; flex-wrap: wrap; gap: 10px; }
+        .page-btn { padding: 5px 12px; font-size: 0.85rem; }
+        .filter-banner { display: none; background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; padding: 10px 15px; border-radius: 8px; margin-bottom: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 0.9rem; font-weight: 600; }
+
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 22px; border-radius: 8px; width: 92%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
@@ -150,7 +159,7 @@
 <div class="container">
     <div class="drive-bar admin-only">
         <div>
-            <strong>☁️ Sinkronisasi Google Sheets & Drive:</strong> Setiap perubahan otomatis tersimpan ke Google Sheets. Gunakan tombol di kanan untuk sinkron manual atau backup cadangan.
+            <strong>☁️ Sinkronisasi Google Sheets & Drive:</strong> Setiap perubahan otomatis tersimpan ke Google Sheets.
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button class="btn-info btn-sm" onclick="muatDariGoogleSheets()">🔄 Muat Ulang dari Sheets</button>
@@ -164,7 +173,7 @@
     <div class="toolbar-top">
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" onkeyup="renderDashboard()" placeholder="Cari Nama, NIK, Kecamatan, Lembaga, atau Kegiatan...">
+            <input type="text" id="searchInput" onkeyup="resetPageAndRender()" placeholder="Cari Nama, NIK, Kecamatan, Lembaga, atau Kegiatan...">
         </div>
         <div class="action-buttons">
             <button id="btnTambahGlobal" class="btn-primary admin-only" onclick="bukaFormTambah()">+ Input Manual</button>
@@ -200,7 +209,7 @@
         <div class="panel-box">
             <h3 class="panel-title">
                 <span>📊 Kegiatan Bidang (<span class="label-tahun">2026</span>)</span>
-                <small style="font-weight:normal; color:#0f4c81;">💡 Klik nama kegiatan untuk lihat peserta</small>
+                <small style="font-weight:normal; color:#0f4c81;">💡 Klik nama/potongan diagram untuk memfilter tabel</small>
             </h3>
             <div class="pie-wrapper">
                 <canvas id="pieChartCanvas" width="215" height="215"></canvas>
@@ -215,6 +224,12 @@
             </h3>
             <div class="mini-participant-list" id="panelPesertaLsp"></div>
         </div>
+    </div>
+
+    <!-- BANNER FILTER KEGIATAN -->
+    <div id="filterBanner" class="filter-banner">
+        <span>🔍 Menampilkan peserta khusus kegiatan: <strong id="filterKegName"></strong></span>
+        <button class="btn-danger btn-sm" onclick="clearActivityFilter()">✖ Tampilkan Semua</button>
     </div>
 
     <div class="table-container">
@@ -233,6 +248,26 @@
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
+        
+        <!-- PAGINATION -->
+        <div class="pagination-wrapper">
+            <div>
+                <label style="font-size:0.85rem; font-weight:600; color:#555;">Tampilkan: </label>
+                <select id="itemsPerPageSelect" onchange="changeItemsPerPage()" style="padding:5px 8px; font-size:0.85rem;">
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="ALL">Semua</option>
+                </select>
+                <span style="font-size:0.85rem; color:#666; margin-left:10px;" id="tableInfo">Menampilkan 0 data</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn-light btn-sm page-btn" id="btnPrevPage" onclick="prevPage()">« Prev</button>
+                <span style="font-size:0.85rem; font-weight:600;" id="pageInfo">Hal 1 / 1</span>
+                <button class="btn-light btn-sm page-btn" id="btnNextPage" onclick="nextPage()">Next »</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -364,7 +399,7 @@
             <h3 id="judulModalKegiatan">Tambah Kegiatan Bidang Baru</h3>
             <span class="close" onclick="tutupModalKegiatan()">&times;</span>
         </div>
-        <div id="bannerEditKegiatan" class="edit-mode-banner">✏️ <strong>Mode Edit:</strong> Anda sedang memperbaiki data kegiatan. Perubahan akan langsung tersimpan.</div>
+        <div id="bannerEditKegiatan" class="edit-mode-banner">✏️ <strong>Mode Edit:</strong> Anda sedang memperbaiki data kegiatan.</div>
         <form onsubmit="simpanKegiatan(event)">
             <input type="hidden" id="editKegOriginalNama" value="">
             <div class="form-group">
@@ -470,6 +505,16 @@
     let isAdmin = sessionStorage.getItem('sdmdispar_auth') === 'true';
     const paletWarna = ['#0f4c81', '#00a896', '#f3722c', '#f9c74f', '#90be6d', '#577590', '#e63946', '#8338ec', '#3a86ff', '#fb5607'];
 
+    // State untuk Pagination & Filter
+    let currentPage = 1;
+    let itemsPerPage = 10; 
+    let currentActivityFilter = null;
+    let chartSlices = []; // Menyimpan data sudut untuk klik canvas
+
+    // Data Kosong (Siap diisi oleh user)
+    let daftarKegiatan = JSON.parse(localStorage.getItem('sim_sdm_kegiatan')) || [];
+    let dataPeserta = JSON.parse(localStorage.getItem('sim_sdm_peserta')) || [];
+
     // Isi dropdown Tanggal Mulai & Tanggal Selesai
     (function isiDropdownTanggal() {
         ['kegTanggal', 'kegTanggalSelesai'].forEach(id => {
@@ -483,25 +528,7 @@
         });
     })();
 
-    const defaultKegiatan = [
-        { tahun: "2024", tanggal: "15", tanggalSelesai: "17", bulan: "Mei", tempat: "Aula Dinas Pariwisata", kecamatan: "Wangi-Wangi", narasumber: "Tim Dispar Wakatobi", jenis: "Pelatihan", nama: "Pelatihan Tata Kelola Homestay" },
-        { tahun: "2025", tanggal: "20", tanggalSelesai: "22", bulan: "Agustus", tempat: "Hotel Patuno", kecamatan: "Wangi-Wangi", narasumber: "Asesor LSP Pariwisata", jenis: "Sertifikasi LSP", nama: "Sertifikasi Kompetensi Pemandu Wisata Alam (LSP)" },
-        { tahun: "2025", tanggal: "10", tanggalSelesai: "", bulan: "Oktober", tempat: "Balai Pertemuan Kaledupa", kecamatan: "Kaledupa", narasumber: "Praktisi Digital Marketing", jenis: "Pelatihan", nama: "Bimtek Digital Marketing Desa Wisata" },
-        { tahun: "2026", tanggal: "12", tanggalSelesai: "14", bulan: "Juni", tempat: "Gedung Pesanggrahan", kecamatan: "Wangi-Wangi Selatan", narasumber: "Kemenparekraf / Dispar", jenis: "Pelatihan", nama: "Fasilitasi Pengembangan Kompetensi SDM Ekraf" },
-        { tahun: "2026", tanggal: "25", tanggalSelesai: "27", bulan: "November", tempat: "Wakatobi Dive Resort", kecamatan: "Tomia Timur", narasumber: "LSP Perhotelan Indonesia", jenis: "Sertifikasi LSP", nama: "Sertifikasi Kompetensi Tata Graha & Front Office Hotel (LSP)" }
-    ];
-
-    const defaultPeserta = [
-        { tahun: "2024", kegiatan: "Pelatihan Tata Kelola Homestay", nik: "7407011205900001", nama: "Wa Ode Siti Rahma", jk: "Perempuan", kecamatan: "Wangi-Wangi", alamat: "Kel. Pongo", telp: "081244556677", pendidikan: "Sarjana (S1 / D4)", pekerjaan: "Pengelola Homestay", lembaga: "Homestay Bajo Indah" },
-        { tahun: "2026", kegiatan: "Fasilitasi Pengembangan Kompetensi SDM Ekraf", nik: "7407011205900001", nama: "Wa Ode Siti Rahma", jk: "Perempuan", kecamatan: "Wangi-Wangi", alamat: "Kel. Pongo", telp: "081244556677", pendidikan: "Sarjana (S1 / D4)", pekerjaan: "Pengelola Homestay", lembaga: "Homestay Bajo Indah" },
-        { tahun: "2026", kegiatan: "Sertifikasi Kompetensi Tata Graha & Front Office Hotel (LSP)", nik: "7407051911950003", nama: "Nurul Hidayah", jk: "Perempuan", kecamatan: "Kaledupa", alamat: "Desa Sombano", telp: "082199887766", pendidikan: "Diploma (D1/D2/D3)", pekerjaan: "Resepsionis Hotel", lembaga: "Penginapan Kaledupa" },
-        { tahun: "2025", kegiatan: "Sertifikasi Kompetensi Pemandu Wisata Alam (LSP)", nik: "7407020508880002", nama: "La Ode Muhamad Yusuf", jk: "Laki-laki", kecamatan: "Wangi-Wangi Selatan", alamat: "Kel. Mandati III", telp: "085211223344", pendidikan: "SMA / SMK / Sederajat", pekerjaan: "Pemandu Wisata", lembaga: "HPI Wakatobi" }
-    ];
-
-    let daftarKegiatan = JSON.parse(localStorage.getItem('sim_sdm_kegiatan')) || defaultKegiatan;
-    let dataPeserta = JSON.parse(localStorage.getItem('sim_sdm_peserta')) || defaultPeserta;
-
-    // ====== FUNGSI FORMAT TANGGAL KEGIATAN ======
+    // ====== FUNGSI FORMAT TANGGAL ======
     function formatTanggalKegiatan(info) {
         if (!info) return '';
         const tglMulai = (info.tanggal || '').toString().trim();
@@ -527,7 +554,6 @@
         return bagian.join(' ').trim();
     }
 
-    // ====== PREVIEW LIVE DI FORM KEGIATAN ======
     function updateKegTanggalPreview() {
         const el = document.getElementById('kegTanggalPreview');
         if (!el) return;
@@ -663,12 +689,68 @@
         });
     }
 
+    // ====== FILTER & PAGINATION LOGIC ======
+    function resetPageAndRender() {
+        currentPage = 1;
+        renderDashboard();
+    }
+
+    function changeItemsPerPage() {
+        const val = document.getElementById('itemsPerPageSelect').value;
+        itemsPerPage = val === 'ALL' ? 999999 : parseInt(val, 10);
+        currentPage = 1;
+        renderDashboard();
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderDashboard();
+        }
+    }
+
+    function nextPage() {
+        const totalFiltered = getFilteredData().length;
+        const totalPages = itemsPerPage === 999999 ? 1 : Math.ceil(totalFiltered / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderDashboard();
+        }
+    }
+
+    function filterByActivity(namaKegiatan) {
+        currentActivityFilter = namaKegiatan;
+        currentPage = 1;
+        renderDashboard();
+    }
+
+    function clearActivityFilter() {
+        currentActivityFilter = null;
+        currentPage = 1;
+        renderDashboard();
+    }
+
+    function getFilteredData() {
+        const tahunDipilih = document.getElementById('filterTahun').value;
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        
+        return dataPeserta.filter(item => {
+            const matchTahun = (tahunDipilih === 'ALL') || (item.tahun === tahunDipilih);
+            const teksGabungan = `${item.nama} ${item.nik} ${item.kecamatan} ${item.alamat} ${item.telp} ${item.pekerjaan} ${item.lembaga} ${item.kegiatan}`.toLowerCase();
+            const matchKeyword = teksGabungan.includes(keyword);
+            const matchKegiatan = currentActivityFilter ? (item.kegiatan === currentActivityFilter) : true;
+            
+            return matchTahun && matchKeyword && matchKegiatan;
+        });
+    }
+
     function gambarPieChart(tahunDipilih) {
         const canvas = document.getElementById('pieChartCanvas');
         const ctx = canvas.getContext('2d');
         const legendDiv = document.getElementById('pieLegendList');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         legendDiv.innerHTML = '';
+        chartSlices = [];
 
         const kegMaster = daftarKegiatan.filter(k => tahunDipilih === 'ALL' || k.tahun === tahunDipilih).map(k => k.nama);
         const kegPeserta = dataPeserta.filter(p => tahunDipilih === 'ALL' || p.tahun === tahunDipilih).map(p => p.kegiatan);
@@ -704,6 +786,9 @@
             const sudutIrisan = (bobot / totalNilai) * 2 * Math.PI;
             const sudutAkhir = sudutAwal + sudutIrisan;
 
+            // Simpan koordinat sudut untuk deteksi klik canvas
+            chartSlices.push({ start: sudutAwal, end: sudutAkhir, nama: item.nama });
+
             ctx.beginPath();
             ctx.moveTo(107, 107);
             ctx.arc(107, 107, 94, sudutAwal, sudutAkhir);
@@ -735,20 +820,20 @@
             const wrapper = document.createElement('div');
             wrapper.className = 'legend-wrapper';
             wrapper.innerHTML = `
-                <div class="legend-item" onclick="toggleDetailKegiatan(${idx})" title="Klik untuk melihat detail & daftar peserta">
-                    <div class="legend-name-wrap">
+                <div class="legend-item">
+                    <div class="legend-name-wrap" onclick="filterByActivity('${item.nama.replace(/'/g, "\\'")}')" title="Klik untuk memfilter tabel peserta kegiatan ini">
                         <span class="color-dot" style="background:${item.warna};"></span>
                         <span class="legend-name-text"><strong>${item.nama}</strong>${tagLsp}</span>
                     </div>
                     <div class="legend-actions">
                         <strong>${item.jumlah} Org</strong>
                         ${isAdmin && item.adaDiMaster ? `
-                            <button type="button" class="btn-warning legend-act-btn btn-edit-keg" title="Edit data kegiatan (nama, tanggal, tempat, narasumber, dll)">📝</button>
-                            <button type="button" class="btn-primary legend-act-btn btn-tambah-peserta-keg" title="Tambah peserta manual ke kegiatan ini">➕</button>
-                            <button type="button" class="btn-purple legend-act-btn btn-upload-peserta-keg" title="Upload peserta CSV ke kegiatan ini">📤</button>
-                            <button type="button" class="btn-danger legend-act-btn btn-hapus-keg" title="Hapus kegiatan ini">🗑️</button>
+                            <button type="button" class="btn-warning legend-act-btn btn-edit-keg" title="Edit data kegiatan">📝</button>
+                            <button type="button" class="btn-primary legend-act-btn btn-tambah-peserta-keg" title="Tambah peserta manual">➕</button>
+                            <button type="button" class="btn-purple legend-act-btn btn-upload-peserta-keg" title="Upload peserta CSV">📤</button>
+                            <button type="button" class="btn-danger legend-act-btn btn-hapus-keg" title="Hapus kegiatan">🗑️</button>
                         ` : ''}
-                        <span id="arrow-keg-${idx}" style="font-size:0.72rem; color:#64748b;">▼</span>
+                        <span id="arrow-keg-${idx}" style="font-size:0.72rem; color:#64748b; cursor:pointer; padding:4px;" onclick="toggleDetailKegiatan(${idx})">▼</span>
                     </div>
                 </div>
                 <div id="detail-keg-${idx}" class="keg-detail-box">
@@ -760,35 +845,58 @@
             legendDiv.appendChild(wrapper);
 
             const btnEdit = wrapper.querySelector('.btn-edit-keg');
-            if (btnEdit) {
-                btnEdit.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    bukaFormEditKegiatan(item.nama);
-                });
-            }
+            if (btnEdit) btnEdit.addEventListener('click', function(e) { e.stopPropagation(); bukaFormEditKegiatan(item.nama); });
+            
             const btnHapus = wrapper.querySelector('.btn-hapus-keg');
-            if (btnHapus) {
-                btnHapus.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    hapusKegiatan(item.nama);
-                });
-            }
+            if (btnHapus) btnHapus.addEventListener('click', function(e) { e.stopPropagation(); hapusKegiatan(item.nama); });
+            
             const btnTambahPeserta = wrapper.querySelector('.btn-tambah-peserta-keg');
-            if (btnTambahPeserta) {
-                btnTambahPeserta.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    bukaFormPesertaUntukKegiatan(item.nama, tahunKegiatan);
-                });
-            }
+            if (btnTambahPeserta) btnTambahPeserta.addEventListener('click', function(e) { e.stopPropagation(); bukaFormPesertaUntukKegiatan(item.nama, tahunKegiatan); });
+            
             const btnUploadPeserta = wrapper.querySelector('.btn-upload-peserta-keg');
-            if (btnUploadPeserta) {
-                btnUploadPeserta.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    bukaUploadUntukKegiatan(item.nama, tahunKegiatan);
-                });
-            }
+            if (btnUploadPeserta) btnUploadPeserta.addEventListener('click', function(e) { e.stopPropagation(); bukaUploadUntukKegiatan(item.nama, tahunKegiatan); });
         });
     }
+
+    // Deteksi klik pada canvas Pie Chart
+    document.getElementById('pieChartCanvas').addEventListener('click', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = 107, centerY = 107;
+        const dx = x - centerX, dy = y - centerY;
+        
+        // Cek apakah klik di dalam radius lingkaran
+        if (Math.sqrt(dx * dx + dy * dy) <= 94) {
+            let angle = Math.atan2(dy, dx); // Sudut dari -PI sampai PI
+            
+            // Normalisasi sudut agar selaras dengan titik awal canvas (-0.5 * PI)
+            angle = angle + Math.PI / 2;
+            if (angle < 0) angle += 2 * Math.PI;
+
+            // Cari slice yang sesuai
+            for (let i = 0; i < chartSlices.length; i++) {
+                // Konversi start/end angle dari range (-PI/2, 3PI/2) ke (0, 2PI)
+                let s = chartSlices[i].start + Math.PI / 2;
+                let en = chartSlices[i].end + Math.PI / 2;
+                if (s < 0) s += 2 * Math.PI;
+                if (en < 0) en += 2 * Math.PI;
+                
+                // Handle wrap around untuk slice yang melewati 0
+                if (en < s) {
+                    if (angle >= s || angle < en) {
+                        filterByActivity(chartSlices[i].nama);
+                        break;
+                    }
+                } else {
+                    if (angle >= s && angle < en) {
+                        filterByActivity(chartSlices[i].nama);
+                        break;
+                    }
+                }
+            }
+        }
+    });
 
     function tampilkanPanelSertifikasiLsp(tahunDipilih) {
         const container = document.getElementById('panelPesertaLsp');
@@ -845,20 +953,13 @@
 
     function renderDashboard() {
         const tahunDipilih = document.getElementById('filterTahun').value;
-        const keyword = document.getElementById('searchInput').value.toLowerCase();
         
         document.querySelectorAll('.label-tahun').forEach(el => el.textContent = tahunDipilih === 'ALL' ? 'Semua' : tahunDipilih);
 
+        // Kalkulasi KPI
         const dataTahunIni = dataPeserta.filter(item => (tahunDipilih === 'ALL') || (item.tahun === tahunDipilih));
         const kegMasterTahun = daftarKegiatan.filter(k => (tahunDipilih === 'ALL') || (k.tahun === tahunDipilih)).map(k => k.nama);
         const semuaKegUnik = [...new Set([...kegMasterTahun, ...dataTahunIni.map(d => d.kegiatan)])].filter(n => n && n !== '-');
-
-        const filteredData = dataPeserta.map((item, idx) => ({ ...item, originalIndex: idx })).filter(item => {
-            const matchTahun = (tahunDipilih === 'ALL') || (item.tahun === tahunDipilih);
-            const teksGabungan = `${item.nama} ${item.nik} ${item.kecamatan} ${item.alamat} ${item.telp} ${item.pekerjaan} ${item.lembaga} ${item.kegiatan}`.toLowerCase();
-            return matchTahun && teksGabungan.includes(keyword);
-        });
-
         const lembagaUnik = [...new Set(dataTahunIni.filter(d => d.lembaga && d.lembaga !== '-').map(d => d.lembaga))];
 
         document.getElementById('kpiKegiatan').textContent = semuaKegUnik.length;
@@ -868,44 +969,75 @@
         gambarPieChart(tahunDipilih);
         tampilkanPanelSertifikasiLsp(tahunDipilih);
 
+        // Tampilkan Banner Filter
+        const banner = document.getElementById('filterBanner');
+        if (currentActivityFilter) {
+            banner.style.display = 'flex';
+            document.getElementById('filterKegName').textContent = currentActivityFilter;
+        } else {
+            banner.style.display = 'none';
+        }
+
+        // Render Tabel dengan Pagination
+        const allFilteredData = getFilteredData();
+        const totalFiltered = allFilteredData.length;
+        const totalPages = itemsPerPage === 999999 ? 1 : Math.max(1, Math.ceil(totalFiltered / itemsPerPage));
+        
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = itemsPerPage === 999999 ? totalFiltered : startIndex + itemsPerPage;
+        const paginatedData = allFilteredData.slice(startIndex, endIndex);
+
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
 
-        filteredData.forEach(row => {
-            const totalIkut = dataPeserta.filter(p => 
-                (row.nik && row.nik !== '-' && p.nik === row.nik) || 
-                (row.nama && row.nama !== '-' && p.nama.toLowerCase() === row.nama.toLowerCase())
-            ).length;
+        if (totalFiltered === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#777;">Belum ada data peserta yang sesuai.</td></tr>';
+        } else {
+            // Data mentah (sebelum filter) diperlukan untuk cek riwayat (originalIndex)
+            paginatedData.forEach(row => {
+                const originalIndex = dataPeserta.findIndex(p => p === row);
+                const totalIkut = dataPeserta.filter(p => 
+                    (row.nik && row.nik !== '-' && p.nik === row.nik) || 
+                    (row.nama && row.nama !== '-' && p.nama.toLowerCase() === row.nama.toLowerCase())
+                ).length;
 
-            const isLsp = cekApakahKegiatanLsp(row.kegiatan);
-            const tagLsp = isLsp ? `<br><span class="lsp-badge-tag">🏅 Sertifikasi LSP</span>` : '';
+                const isLsp = cekApakahKegiatanLsp(row.kegiatan);
+                const tagLsp = isLsp ? `<br><span class="lsp-badge-tag">🏅 Sertifikasi LSP</span>` : '';
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>${row.tahun || '-'}</strong></td>
-                <td>${row.kegiatan || '-'}${tagLsp}</td>
-                <td><strong>${row.nama || '(Tanpa Nama)'}</strong><br><small style="color:#555">NIK: ${row.nik || '-'} | JK: ${row.jk || '-'}</small></td>
-                <td><strong>Kec. ${row.kecamatan || '-'}</strong><br><small style="color:#666">${row.alamat || '-'}</small></td>
-                <td><small>📞 ${row.telp || '-'}<br>🎓 ${row.pendidikan || '-'}<br>💼 ${row.pekerjaan || '-'}</small></td>
-                <td>${row.lembaga || '-'}</td>
-                <td><span class="badge" onclick="lihatRiwayat('${row.nik}', '${row.nama}')">${totalIkut}x Pelatihan</span></td>
-                <td class="admin-only" style="white-space:nowrap;">
-                    <button class="btn-warning btn-sm" onclick="editPeserta(${row.originalIndex})">Edit</button>
-                    <button class="btn-danger btn-sm" onclick="hapusPeserta(${row.originalIndex})">Hapus</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.tahun || '-'}</strong></td>
+                    <td>${row.kegiatan || '-'}${tagLsp}</td>
+                    <td><strong>${row.nama || '(Tanpa Nama)'}</strong><br><small style="color:#555">NIK: ${row.nik || '-'} | JK: ${row.jk || '-'}</small></td>
+                    <td><strong>Kec. ${row.kecamatan || '-'}</strong><br><small style="color:#666">${row.alamat || '-'}</small></td>
+                    <td><small>📞 ${row.telp || '-'}<br>🎓 ${row.pendidikan || '-'}<br>💼 ${row.pekerjaan || '-'}</small></td>
+                    <td>${row.lembaga || '-'}</td>
+                    <td><span class="badge" onclick="lihatRiwayat('${row.nik}', '${row.nama}')">${totalIkut}x Pelatihan</span></td>
+                    <td class="admin-only" style="white-space:nowrap;">
+                        <button class="btn-warning btn-sm" onclick="editPeserta(${originalIndex})">Edit</button>
+                        <button class="btn-danger btn-sm" onclick="hapusPeserta(${originalIndex})">Hapus</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update UI Pagination
+        document.getElementById('tableInfo').textContent = `Menampilkan ${totalFiltered === 0 ? 0 : startIndex + 1} - ${Math.min(endIndex, totalFiltered)} dari ${totalFiltered} data`;
+        document.getElementById('pageInfo').textContent = `Hal ${currentPage} / ${totalPages}`;
+        document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+        document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
 
         cekStatusLogin();
         updateToolbarState();
     }
 
+    // ====== FUNGSI CRUD LAINNYA ======
     function bukaFormTambah() {
-        if (daftarKegiatan.length === 0) {
-            alert('Tambahkan kegiatan terlebih dahulu sebelum input peserta manual.');
-            return;
-        }
+        if (daftarKegiatan.length === 0) { alert('Tambahkan kegiatan terlebih dahulu sebelum input peserta manual.'); return; }
         document.getElementById('editIndex').value = "-1";
         document.getElementById('judulModalPeserta').textContent = "Input Data Peserta Manual";
         document.querySelector('#modalInput form').reset();
@@ -918,14 +1050,10 @@
     }
 
     function bukaFormPesertaUntukKegiatan(namaKegiatan, tahunKegiatan) {
-        if (daftarKegiatan.length === 0) {
-            alert('Tambahkan kegiatan terlebih dahulu.');
-            return;
-        }
+        if (daftarKegiatan.length === 0) { alert('Tambahkan kegiatan terlebih dahulu.'); return; }
         document.getElementById('editIndex').value = "-1";
         document.getElementById('judulModalPeserta').textContent = "Input Data Peserta Manual";
         document.querySelector('#modalInput form').reset();
-        
         if (tahunKegiatan) {
             const selTahun = document.getElementById('inTahun');
             if ([...selTahun.options].some(o => o.value === tahunKegiatan)) selTahun.value = tahunKegiatan;
@@ -938,25 +1066,16 @@
     }
 
     function bukaUploadGlobal() {
-        if (daftarKegiatan.length === 0) {
-            alert('Tambahkan kegiatan terlebih dahulu sebelum mengupload peserta.');
-            return;
-        }
+        if (daftarKegiatan.length === 0) { alert('Tambahkan kegiatan terlebih dahulu sebelum mengupload peserta.'); return; }
         const input = document.getElementById('fileImportCsv');
-        delete input.dataset.ctxNamaKegiatan;
-        delete input.dataset.ctxTahun;
-        input.value = '';
+        delete input.dataset.ctxNamaKegiatan; delete input.dataset.ctxTahun; input.value = '';
         input.click();
     }
 
     function bukaUploadUntukKegiatan(namaKegiatan, tahunKegiatan) {
-        if (daftarKegiatan.length === 0) {
-            alert('Tambahkan kegiatan terlebih dahulu sebelum mengupload peserta.');
-            return;
-        }
+        if (daftarKegiatan.length === 0) { alert('Tambahkan kegiatan terlebih dahulu sebelum mengupload peserta.'); return; }
         const input = document.getElementById('fileImportCsv');
-        input.dataset.ctxNamaKegiatan = namaKegiatan;
-        input.dataset.ctxTahun = tahunKegiatan || '';
+        input.dataset.ctxNamaKegiatan = namaKegiatan; input.dataset.ctxTahun = tahunKegiatan || '';
         input.value = '';
         input.click();
     }
@@ -984,10 +1103,7 @@
         const idx = parseInt(document.getElementById('editIndex').value);
         const kegDipilih = document.getElementById('inKegiatan').value;
 
-        if (!kegDipilih || kegDipilih === '') {
-            alert('Pilih kegiatan terlebih dahulu!');
-            return;
-        }
+        if (!kegDipilih || kegDipilih === '') { alert('Pilih kegiatan terlebih dahulu!'); return; }
 
         const objekData = {
             tahun: document.getElementById('inTahun').value || "-",
@@ -1018,39 +1134,25 @@
         }
     }
 
-    // ====== FORM KEGIATAN: TAMBAH (BARU) ======
     function bukaFormKegiatanBaru() {
-        if (!isAdmin) {
-            alert('Hanya admin yang dapat menambah kegiatan.');
-            return;
-        }
+        if (!isAdmin) { alert('Hanya admin yang dapat menambah kegiatan.'); return; }
         document.getElementById('editKegOriginalNama').value = '';
         document.getElementById('judulModalKegiatan').textContent = 'Tambah Kegiatan Bidang Baru';
         document.getElementById('bannerEditKegiatan').style.display = 'none';
         document.getElementById('btnSimpanKegiatan').textContent = 'Simpan Kegiatan';
         document.getElementById('btnSimpanKegiatan').className = 'btn-info';
         document.querySelector('#modalKegiatan form').reset();
-        // Set default tahun ke filter aktif
         const filterTahun = document.getElementById('filterTahun').value;
         const selTahun = document.getElementById('kegTahun');
-        if (filterTahun !== 'ALL' && [...selTahun.options].some(o => o.value === filterTahun)) {
-            selTahun.value = filterTahun;
-        }
+        if (filterTahun !== 'ALL' && [...selTahun.options].some(o => o.value === filterTahun)) selTahun.value = filterTahun;
         updateKegTanggalPreview();
         openModal('modalKegiatan');
     }
 
-    // ====== FORM KEGIATAN: EDIT ======
     function bukaFormEditKegiatan(namaKegiatan) {
-        if (!isAdmin) {
-            alert('Hanya admin yang dapat mengedit kegiatan.');
-            return;
-        }
+        if (!isAdmin) { alert('Hanya admin yang dapat mengedit kegiatan.'); return; }
         const keg = daftarKegiatan.find(k => k.nama === namaKegiatan);
-        if (!keg) {
-            alert('Data kegiatan tidak ditemukan. Mungkin sudah dihapus.');
-            return;
-        }
+        if (!keg) { alert('Data kegiatan tidak ditemukan.'); return; }
 
         document.getElementById('editKegOriginalNama').value = namaKegiatan;
         document.getElementById('judulModalKegiatan').textContent = 'Edit Kegiatan Bidang';
@@ -1064,14 +1166,10 @@
         document.getElementById('kegTanggalSelesai').value = keg.tanggalSelesai || '';
         document.getElementById('kegBulan').value = keg.bulan || '';
         
-        // Tahun: kalau tidak ada di opsi, tambahkan dinamis
         const selTahun = document.getElementById('kegTahun');
         const tahunKeg = keg.tahun || '2026';
         if (![...selTahun.options].some(o => o.value === tahunKeg)) {
-            const opt = document.createElement('option');
-            opt.value = tahunKeg;
-            opt.textContent = tahunKeg;
-            selTahun.appendChild(opt);
+            const opt = document.createElement('option'); opt.value = tahunKeg; opt.textContent = tahunKeg; selTahun.appendChild(opt);
         }
         selTahun.value = tahunKeg;
 
@@ -1083,7 +1181,6 @@
         openModal('modalKegiatan');
     }
 
-    // ====== TUTUP MODAL KEGIATAN (reset state edit) ======
     function tutupModalKegiatan() {
         document.getElementById('editKegOriginalNama').value = '';
         document.getElementById('judulModalKegiatan').textContent = 'Tambah Kegiatan Bidang Baru';
@@ -1095,7 +1192,6 @@
         closeModal('modalKegiatan');
     }
 
-    // ====== SIMPAN KEGIATAN (TAMBAH ATAU EDIT) ======
     function simpanKegiatan(e) {
         e.preventDefault();
         const originalNama = document.getElementById('editKegOriginalNama').value || '';
@@ -1111,120 +1207,55 @@
         const kec = document.getElementById('kegKecamatan').value;
         const narsum = document.getElementById('kegNarasumber').value.trim();
 
-        // Validasi dasar
-        if (!nm) {
-            alert('Nama kegiatan tidak boleh kosong!');
-            return;
-        }
-        if (!tgl) {
-            alert('Tanggal mulai harus diisi!');
-            return;
-        }
-        if (!bln) {
-            alert('Bulan harus dipilih!');
-            return;
-        }
+        if (!nm) { alert('Nama kegiatan tidak boleh kosong!'); return; }
+        if (!tgl) { alert('Tanggal mulai harus diisi!'); return; }
+        if (!bln) { alert('Bulan harus dipilih!'); return; }
 
-        // Duplikat check - hanya reject jika nama sama dengan KEGIATAN LAIN
         const duplikat = daftarKegiatan.find(k => k.nama === nm && k.nama !== originalNama);
-        if (duplikat) {
-            alert(`Kegiatan dengan nama "${nm}" sudah ada.\n\nGunakan nama berbeda jika ini kegiatan yang berbeda.`);
-            return;
-        }
+        if (duplikat) { alert(`Kegiatan dengan nama "${nm}" sudah ada.`); return; }
 
-        // Validasi tanggal selesai
         if (tglSelesai) {
-            const n1 = parseInt(tgl, 10);
-            const n2 = parseInt(tglSelesai, 10);
+            const n1 = parseInt(tgl, 10); const n2 = parseInt(tglSelesai, 10);
             if (n2 < n1) {
-                const lanjut = confirm(
-                    `Tanggal selesai (${tglSelesai}) lebih awal dari tanggal mulai (${tgl}).\n\n` +
-                    `Jika kegiatan melewati bulan (misal 30 Juni s/d 2 Juli), disarankan buat catatan di nama kegiatan.\n\n` +
-                    `Lanjutkan simpan?`
-                );
-                if (!lanjut) return;
+                if (!confirm(`Tanggal selesai (${tglSelesai}) lebih awal dari tanggal mulai (${tgl}). Lanjutkan?`)) return;
             }
         }
 
-        const objekKegiatan = {
-            tahun: thn,
-            tanggal: tgl,
-            tanggalSelesai: tglSelesai,
-            bulan: bln,
-            tempat: tmp,
-            kecamatan: kec,
-            narasumber: narsum,
-            jenis: jns,
-            nama: nm
-        };
+        const objekKegiatan = { tahun: thn, tanggal: tgl, tanggalSelesai: tglSelesai, bulan: bln, tempat: tmp, kecamatan: kec, narasumber: narsum, jenis: jns, nama: nm };
 
         if (isEdit) {
-            // === MODE EDIT ===
             const idx = daftarKegiatan.findIndex(k => k.nama === originalNama);
-            if (idx === -1) {
-                alert('Kegiatan asli tidak ditemukan. Mungkin sudah dihapus oleh admin lain.\n\nSilakan refresh halaman.');
-                return;
-            }
+            if (idx === -1) { alert('Kegiatan asli tidak ditemukan.'); return; }
             const kegLama = daftarKegiatan[idx];
-            const namaBerubah = nm !== originalNama;
-            const tahunBerubah = thn !== kegLama.tahun;
-
-            // 1) Handle perubahan nama -> propagate ke peserta
+            
             let namaAkhirUntukPeserta = originalNama;
-            if (namaBerubah) {
+            if (nm !== originalNama) {
                 const pesertaTerkait = dataPeserta.filter(p => p.kegiatan === originalNama);
                 if (pesertaTerkait.length > 0) {
-                    const update = confirm(
-                        `Nama kegiatan berubah:\n\n` +
-                        `DARI: "${originalNama}"\n` +
-                        `KE:   "${nm}"\n\n` +
-                        `Ada ${pesertaTerkait.length} peserta terkait.\n\n` +
-                        `✅ OK = Update juga nama kegiatan di data ${pesertaTerkait.length} peserta\n` +
-                        `❌ Batal = Peserta tetap memakai nama lama (akan jadi data "yatim" — tidak terhubung ke kegiatan ini)`
-                    );
+                    const update = confirm(`Nama kegiatan berubah ke "${nm}".\n\nUpdate juga nama kegiatan di ${pesertaTerkait.length} data peserta?`);
                     if (update) {
-                        dataPeserta.forEach(p => {
-                            if (p.kegiatan === originalNama) p.kegiatan = nm;
-                        });
+                        dataPeserta.forEach(p => { if (p.kegiatan === originalNama) p.kegiatan = nm; });
                         namaAkhirUntukPeserta = nm;
-                    } else {
-                        alert(`Catatan: ${pesertaTerkait.length} peserta tetap memakai nama kegiatan lama.\n\nNama kegiatan lama akan tetap muncul di diagram dengan status "peserta dari kegiatan yang sudah di-rename".`);
                     }
-                } else {
-                    namaAkhirUntukPeserta = nm;
-                }
+                } else { namaAkhirUntukPeserta = nm; }
             }
 
-            // 2) Handle perubahan tahun -> propagate ke peserta (yang sesuai nama akhir)
-            if (tahunBerubah) {
+            if (thn !== kegLama.tahun) {
                 const pesertaTerkait = dataPeserta.filter(p => p.kegiatan === namaAkhirUntukPeserta);
                 if (pesertaTerkait.length > 0) {
-                    const update = confirm(
-                        `Tahun kegiatan berubah:\n\n` +
-                        `DARI: ${kegLama.tahun}\n` +
-                        `KE:   ${thn}\n\n` +
-                        `Ada ${pesertaTerkait.length} peserta terkait.\n\n` +
-                        `✅ OK = Update juga tahun peserta menjadi ${thn}\n` +
-                        `❌ Batal = Tahun peserta tetap seperti sebelumnya`
-                    );
-                    if (update) {
-                        dataPeserta.forEach(p => {
-                            if (p.kegiatan === namaAkhirUntukPeserta) p.tahun = thn;
-                        });
+                    if (confirm(`Tahun kegiatan berubah ke ${thn}.\n\nUpdate juga tahun di ${pesertaTerkait.length} data peserta?`)) {
+                        dataPeserta.forEach(p => { if (p.kegiatan === namaAkhirUntukPeserta) p.tahun = thn; });
                     }
                 }
             }
 
-            // 3) Terapkan perubahan ke master kegiatan
             daftarKegiatan[idx] = objekKegiatan;
-
             simpanKeBrowser();
             updateDropdownKegiatan();
             tutupModalKegiatan();
             renderDashboard();
             alert(`Kegiatan "${nm}" berhasil diperbarui.`);
         } else {
-            // === MODE TAMBAH ===
             daftarKegiatan.push(objekKegiatan);
             simpanKeBrowser();
             updateDropdownKegiatan();
@@ -1235,39 +1266,27 @@
     }
 
     function hapusKegiatan(namaKegiatan) {
-        if (!isAdmin) {
-            alert('Hanya admin yang dapat menghapus kegiatan.');
-            return;
-        }
-
+        if (!isAdmin) { alert('Hanya admin yang dapat menghapus kegiatan.'); return; }
         const adaDiMaster = daftarKegiatan.some(k => k.nama === namaKegiatan);
-        if (!adaDiMaster) {
-            alert('Kegiatan ini tidak ada di daftar master. Mungkin sudah dihapus sebelumnya.\n\nHapus data peserta satu per satu jika ingin membersihkan.');
-            return;
-        }
+        if (!adaDiMaster) { alert('Kegiatan ini tidak ada di daftar master.'); return; }
 
         const pesertaTerkait = dataPeserta.filter(p => p.kegiatan === namaKegiatan);
         let pesan = `Yakin ingin menghapus kegiatan:\n\n"${namaKegiatan}"?\n`;
-        if (pesertaTerkait.length > 0) {
-            pesan += `\n⚠️ Terdapat ${pesertaTerkait.length} data peserta terdaftar pada kegiatan ini.`;
-        }
-
+        if (pesertaTerkait.length > 0) pesan += `\n⚠️ Terdapat ${pesertaTerkait.length} data peserta terdaftar.`;
         if (!confirm(pesan)) return;
 
         daftarKegiatan = daftarKegiatan.filter(k => k.nama !== namaKegiatan);
 
         if (pesertaTerkait.length > 0) {
-            const hapusPesertaJuga = confirm(
-                `Hapus juga ${pesertaTerkait.length} data peserta yang terkait dengan kegiatan ini?\n\n` +
-                `✅ OK = Hapus kegiatan DAN data peserta\n` +
-                `❌ Batal = Hapus kegiatan saja (data peserta tetap tersimpan)`
-            );
-            if (hapusPesertaJuga) {
+            if (confirm(`Hapus juga ${pesertaTerkait.length} data peserta terkait?`)) {
                 dataPeserta = dataPeserta.filter(p => p.kegiatan !== namaKegiatan);
             } else {
-                alert(`Catatan: Nama kegiatan masih akan muncul di diagram karena masih ada ${pesertaTerkait.length} data peserta terkait.\n\nHapus data peserta secara manual jika ingin kegiatan benar-benar hilang.`);
+                alert('Data peserta dibiarkan (akan tampil sebagai data yatim).');
             }
         }
+
+        // Clear filter jika kegiatan yang dihapus sedang difilter
+        if (currentActivityFilter === namaKegiatan) currentActivityFilter = null;
 
         simpanKeBrowser();
         updateDropdownKegiatan();
@@ -1291,12 +1310,10 @@
     function unduhFormKosong() {
         const header = "Tahun;Nama Kegiatan;NIK;Nama Lengkap (KTP);Jenis Kelamin;Asal Kecamatan;Alamat Desa/Kel;No Telepon;Pendidikan Terakhir;Pekerjaan;Nama Lembaga";
         const contoh = "2026;Nama Kegiatan Sesuai Master;7407010101900001;Contoh Nama Peserta;Laki-laki;Wangi-Wangi;Kel. Pongo;081234567890;Sarjana (S1 / D4);Staf Hotel;Hotel Wakatobi";
-        const catatan = "# CATATAN: Untuk upload lewat tombol 📤 di samping kegiatan, kolom Tahun & Nama Kegiatan akan OTOMATIS diisi sesuai kegiatan yang dipilih (tidak perlu diisi).";
+        const catatan = "# CATATAN: Untuk upload lewat tombol 📤 di samping kegiatan, kolom Tahun & Nama Kegiatan akan OTOMATIS diisi.";
         const blob = new Blob(["\ufeff" + catatan + "\n" + header + "\n" + contoh + "\n"], { type: "text/csv;charset=utf-8;" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "Form_Kosong_Peserta_SDM_Wakatobi.csv";
-        a.click();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        a.download = "Form_Kosong_Peserta_SDM_Wakatobi.csv"; a.click();
     }
 
     function importDariCsv(event) {
@@ -1305,8 +1322,7 @@
         const input = event.target;
         const ctxNama = input.dataset.ctxNamaKegiatan || '';
         const ctxTahun = input.dataset.ctxTahun || '';
-        delete input.dataset.ctxNamaKegiatan;
-        delete input.dataset.ctxTahun;
+        delete input.dataset.ctxNamaKegiatan; delete input.dataset.ctxTahun;
 
         const filterTahunAktif = document.getElementById('filterTahun').value;
         const tahunDefaultFilter = filterTahunAktif === 'ALL' ? '2026' : filterTahunAktif;
@@ -1314,8 +1330,7 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             const baris = e.target.result.split(/\r?\n/);
-            let jumlahMasuk = 0;
-            let dilewati = 0;
+            let jumlahMasuk = 0, dilewati = 0;
 
             for (let i = 0; i < baris.length; i++) {
                 const barisTrim = baris[i].trim();
@@ -1329,31 +1344,17 @@
 
                 if (col.length >= 4 && (col[2] || col[3])) {
                     let tahunPeserta, kegiatanPeserta;
-                    if (ctxNama) {
-                        tahunPeserta = ctxTahun || tahunDefaultFilter;
-                        kegiatanPeserta = ctxNama;
-                    } else {
-                        tahunPeserta = col[0] || tahunDefaultFilter;
-                        kegiatanPeserta = col[1] || '-';
-                    }
+                    if (ctxNama) { tahunPeserta = ctxTahun || tahunDefaultFilter; kegiatanPeserta = ctxNama; }
+                    else { tahunPeserta = col[0] || tahunDefaultFilter; kegiatanPeserta = col[1] || '-'; }
 
                     dataPeserta.unshift({
-                        tahun: tahunPeserta,
-                        kegiatan: kegiatanPeserta,
-                        nik: (col[2] || "-").replace(/^'/, ''),
-                        nama: col[3] || "-",
-                        jk: col[4] || "-",
-                        kecamatan: col[5] || "-",
-                        alamat: col[6] || "-",
-                        telp: (col[7] || "-").replace(/^'/, ''),
-                        pendidikan: col[8] || "-",
-                        pekerjaan: col[9] || "-",
-                        lembaga: col[10] || "-"
+                        tahun: tahunPeserta, kegiatan: kegiatanPeserta,
+                        nik: (col[2] || "-").replace(/^'/, ''), nama: col[3] || "-", jk: col[4] || "-",
+                        kecamatan: col[5] || "-", alamat: col[6] || "-", telp: (col[7] || "-").replace(/^'/, ''),
+                        pendidikan: col[8] || "-", pekerjaan: col[9] || "-", lembaga: col[10] || "-"
                     });
                     jumlahMasuk++;
-                } else {
-                    dilewati++;
-                }
+                } else { dilewati++; }
             }
 
             simpanKeBrowser();
@@ -1361,8 +1362,8 @@
             input.value = '';
 
             let pesan = `Berhasil mengimpor ${jumlahMasuk} data peserta`;
-            if (ctxNama) pesan += `\n\n📌 Masuk ke kegiatan: "${ctxNama}"\n📅 Tahun: ${ctxTahun || tahunDefaultFilter}\n\n(Tahun & kegiatan di CSV diabaikan karena upload per-kegiatan)`;
-            if (dilewati > 0) pesan += `\n\n⚠️ ${dilewati} baris dilewati karena data tidak lengkap.`;
+            if (ctxNama) pesan += `\n\n📌 Masuk ke: "${ctxNama}"\n📅 Tahun: ${ctxTahun || tahunDefaultFilter}`;
+            if (dilewati > 0) pesan += `\n\n⚠️ ${dilewati} baris dilewati.`;
             alert(pesan);
         };
         reader.readAsText(file);
@@ -1371,10 +1372,8 @@
     function backupDatabase() {
         const paketData = { tanggalBackup: new Date().toISOString(), kegiatan: daftarKegiatan, peserta: dataPeserta };
         const blob = new Blob([JSON.stringify(paketData, null, 2)], { type: "application/json" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `Database_SDM_Wakatobi_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        a.download = `Database_SDM_Wakatobi_${new Date().toISOString().slice(0,10)}.json`; a.click();
     }
 
     function restoreDatabase(event) {
@@ -1395,15 +1394,10 @@
     }
 
     function exportToExcel() {
-        const tahun = document.getElementById('filterTahun').value;
+        const allFilteredData = getFilteredData(); // Export yang sedang difilter
         let tableHTML = `<table border="1"><thead><tr><th>No</th><th>Tahun</th><th>Nama Kegiatan</th><th>Waktu Pelaksanaan</th><th>Status LSP</th><th>NIK</th><th>Nama Lengkap</th><th>Jenis Kelamin</th><th>Asal Kecamatan</th><th>Alamat</th><th>No. Telepon</th><th>Pendidikan</th><th>Pekerjaan</th><th>Nama Lembaga</th></tr></thead><tbody>`;
-        const keyword = document.getElementById('searchInput').value.toLowerCase();
-        const filteredData = dataPeserta.filter(item => {
-            const matchTahun = (tahun === 'ALL') || (item.tahun === tahun);
-            const teks = `${item.nama} ${item.nik} ${item.kecamatan} ${item.alamat} ${item.telp} ${item.pekerjaan} ${item.lembaga} ${item.kegiatan}`.toLowerCase();
-            return matchTahun && teks.includes(keyword);
-        });
-        filteredData.forEach((row, i) => {
+        
+        allFilteredData.forEach((row, i) => {
             const statusLsp = cekApakahKegiatanLsp(row.kegiatan) ? 'Tersertifikasi LSP' : 'Pelatihan Biasa';
             const infoKeg = daftarKegiatan.find(k => k.nama === row.kegiatan) || {};
             const waktu = formatTanggalKegiatan(infoKeg) || '-';
@@ -1411,15 +1405,14 @@
         });
         tableHTML += `</tbody></table>`;
         const blob = new Blob(['\ufeff', tableHTML], { type: 'application/vnd.ms-excel' });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `Rekap_SDM_Pariwisata_Wakatobi_${tahun}.xls`;
-        a.click();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        a.download = `Rekap_SDM_Wakatobi_${currentActivityFilter ? 'Kegiatan_Tertentu' : 'Semua'}.xls`; a.click();
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    // Inisialisasi
     updateDropdownKegiatan();
     updateKegTanggalPreview();
     renderDashboard();
