@@ -75,7 +75,6 @@
         .keg-meta { color: #475569; margin-bottom: 6px; line-height: 1.45; }
         .keg-peserta-ol { margin: 4px 0 0 0; padding-left: 18px; color: #1e293b; }
         .keg-peserta-ol li { margin-bottom: 3px; }
-        .keg-admin-action { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; }
         .color-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; margin-right: 8px; flex-shrink: 0; }
         .lsp-badge-tag { background: #fef3c7; color: #b45309; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; }
         .mini-participant-list { max-height: 310px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
@@ -193,7 +192,7 @@
         <div class="panel-box">
             <h3 class="panel-title">
                 <span>📊 Kegiatan Bidang (<span class="label-tahun">2026</span>)</span>
-                <small style="font-weight:normal; color:#0f4c81;">💡 Klik nama kegiatan untuk lihat peserta / hapus</small>
+                <small style="font-weight:normal; color:#0f4c81;">💡 Klik nama kegiatan untuk lihat peserta</small>
             </h3>
             <div class="pie-wrapper">
                 <canvas id="pieChartCanvas" width="215" height="215"></canvas>
@@ -538,7 +537,7 @@
         const elemenAdmin = document.querySelectorAll('.admin-only');
         elemenAdmin.forEach(el => {
             if (el.tagName === 'TH' || el.tagName === 'TD') el.style.display = isAdmin ? 'table-cell' : 'none';
-            else if (el.classList.contains('drive-bar') || el.classList.contains('keg-admin-action')) el.style.display = isAdmin ? 'flex' : 'none';
+            else if (el.classList.contains('drive-bar')) el.style.display = isAdmin ? 'flex' : 'none';
             else el.style.display = isAdmin ? 'inline-block' : 'none';
         });
         document.getElementById('btnLoginOpen').style.display = isAdmin ? 'none' : 'inline-block';
@@ -582,40 +581,6 @@
             box.style.display = 'block';
             if (arrow) arrow.textContent = '▲';
         }
-    }
-
-    function hapusKegiatanDanIsinya(namaKegEncoded, tahunDipilih) {
-        const namaKeg = decodeURIComponent(namaKegEncoded);
-        const jumlahPesertaTerkait = dataPeserta.filter(p =>
-            p.kegiatan === namaKeg && (tahunDipilih === 'ALL' || p.tahun === tahunDipilih)
-        ).length;
-
-        const teksTahun = tahunDipilih === 'ALL' ? 'SEMUA TAHUN' : `Tahun ${tahunDipilih}`;
-        const konfirmasi = confirm(
-            `⚠️ PERINGATAN HAPUS KEGIATAN!
-
-` +
-            `Apakah Anda yakin ingin menghapus kegiatan:
-"${namaKeg}" (${teksTahun})?
-
-` +
-            `Tindakan ini juga akan menghapus ${jumlahPesertaTerkait} data peserta di dalam kegiatan tersebut secara permanen!`
-        );
-
-        if (!konfirmasi) return;
-
-        daftarKegiatan = daftarKegiatan.filter(k =>
-            !(k.nama === namaKeg && (tahunDipilih === 'ALL' || k.tahun === tahunDipilih))
-        );
-
-        dataPeserta = dataPeserta.filter(p =>
-            !(p.kegiatan === namaKeg && (tahunDipilih === 'ALL' || p.tahun === tahunDipilih))
-        );
-
-        simpanKeBrowser();
-        updateDropdownKegiatan();
-        renderDashboard();
-        alert(`Kegiatan "${namaKeg}" beserta ${jumlahPesertaTerkait} peserta di dalamnya berhasil dihapus.`);
     }
 
     function gambarPieChart(tahunDipilih) {
@@ -684,18 +649,17 @@
                 ? `<ol class="keg-peserta-ol">${item.pesertaList.map(p => `<li><strong>${p.nama || '(Tanpa Nama)'}</strong> <span style="color:#64748b;">(${p.kecamatan || '-'} - ${p.lembaga || '-'})</span></li>`).join('')}</ol>`
                 : `<div style="color:#888; font-style:italic; margin-top:4px;">Belum ada peserta terdaftar pada kegiatan ini.</div>`;
 
-            const namaEncoded = encodeURIComponent(item.nama);
-
             const wrapper = document.createElement('div');
             wrapper.className = 'legend-wrapper';
             wrapper.innerHTML = `
                 <div class="legend-item" onclick="toggleDetailKegiatan(${idx})" title="Klik untuk melihat detail & daftar peserta">
-                    <div style="display:flex; align-items:center;">
+                    <div style="display:flex; align-items:center; flex:1; min-width:0;">
                         <span class="color-dot" style="background:${item.warna};"></span>
-                        <span><strong>${item.nama}</strong>${tagLsp}</span>
+                        <span style="overflow:hidden; text-overflow:ellipsis;"><strong>${item.nama}</strong>${tagLsp}</span>
                     </div>
                     <div style="margin-left:8px; white-space:nowrap; display:flex; align-items:center; gap:6px;">
                         <strong>${item.jumlah} Org</strong>
+                        ${isAdmin ? `<button type="button" class="btn-danger btn-sm btn-hapus-keg" style="padding:3px 8px; font-size:0.75rem;" title="Hapus kegiatan ini">🗑️ Hapus</button>` : ''}
                         <span id="arrow-keg-${idx}" style="font-size:0.72rem; color:#64748b;">▼</span>
                     </div>
                 </div>
@@ -703,14 +667,18 @@
                     ${metaHTML}
                     <div style="font-weight:600; color:#0f4c81; margin-top:4px;">Daftar Peserta (${item.jumlah} Orang):</div>
                     ${pesertaHTML}
-                    <div class="keg-admin-action admin-only">
-                        <button type="button" class="btn-danger btn-sm" onclick="hapusKegiatanDanIsinya('${namaEncoded}', '${tahunDipilih}')">
-                            🗑️ Hapus Kegiatan & Isinya
-                        </button>
-                    </div>
                 </div>
             `;
             legendDiv.appendChild(wrapper);
+
+            // Pasang listener hapus (klik 🗑️ tidak men-trigger toggle detail)
+            const btnHapus = wrapper.querySelector('.btn-hapus-keg');
+            if (btnHapus) {
+                btnHapus.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    hapusKegiatan(item.nama);
+                });
+            }
         });
     }
 
@@ -904,6 +872,43 @@
         alert('Kegiatan baru beserta lokasi & narasumber berhasil ditambahkan!');
     }
 
+    function hapusKegiatan(namaKegiatan) {
+        if (!isAdmin) {
+            alert('Hanya admin yang dapat menghapus kegiatan.');
+            return;
+        }
+
+        const pesertaTerkait = dataPeserta.filter(p => p.kegiatan === namaKegiatan);
+        let pesan = `Yakin ingin menghapus kegiatan:\n\n"${namaKegiatan}"?\n`;
+        if (pesertaTerkait.length > 0) {
+            pesan += `\n⚠️ Terdapat ${pesertaTerkait.length} data peserta terdaftar pada kegiatan ini.`;
+        }
+
+        if (!confirm(pesan)) return;
+
+        // Hapus kegiatan dari master daftarKegiatan
+        daftarKegiatan = daftarKegiatan.filter(k => k.nama !== namaKegiatan);
+
+        // Tanya soal data peserta terkait
+        if (pesertaTerkait.length > 0) {
+            const hapusPesertaJuga = confirm(
+                `Hapus juga ${pesertaTerkait.length} data peserta yang terkait dengan kegiatan ini?\n\n` +
+                `✅ Klik OK = Hapus kegiatan DAN data peserta\n` +
+                `❌ Klik Batal = Hapus kegiatan saja (data peserta tetap tersimpan)`
+            );
+            if (hapusPesertaJuga) {
+                dataPeserta = dataPeserta.filter(p => p.kegiatan !== namaKegiatan);
+            } else {
+                alert(`Catatan: Nama kegiatan masih akan muncul di diagram karena masih ada ${pesertaTerkait.length} data peserta terkait.\n\nHapus data peserta secara manual jika ingin kegiatan benar-benar hilang.`);
+            }
+        }
+
+        simpanKeBrowser();       // ✅ otomatis sync ke Google Sheets
+        updateDropdownKegiatan();
+        renderDashboard();
+        alert(`Kegiatan "${namaKegiatan}" berhasil dihapus.`);
+    }
+
     function lihatRiwayat(nik, nama) {
         const riwayat = dataPeserta.filter(p => (nik && nik !== '-' && p.nik === nik) || (nama && nama !== '-' && p.nama.toLowerCase() === nama.toLowerCase()));
         riwayat.sort((a, b) => b.tahun - a.tahun);
@@ -920,9 +925,7 @@
     function unduhFormKosong() {
         const header = "Tahun;Nama Kegiatan;NIK;Nama Lengkap (KTP);Jenis Kelamin;Asal Kecamatan;Alamat Desa/Kel;No Telepon;Pendidikan Terakhir;Pekerjaan;Nama Lembaga";
         const contoh = "2026;Sertifikasi Kompetensi Tata Graha & Front Office Hotel (LSP);7407010101900001;Contoh Nama Peserta;Laki-laki;Wangi-Wangi;Kel. Pongo;081234567890;Sarjana (S1 / D4);Staf Hotel;Hotel Wakatobi";
-        const blob = new Blob(["﻿" + header + "
-" + contoh + "
-"], { type: "text/csv;charset=utf-8;" });
+        const blob = new Blob(["\ufeff" + header + "\n" + contoh + "\n"], { type: "text/csv;charset=utf-8;" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = "Form_Kosong_Peserta_SDM_Wakatobi.csv";
@@ -934,9 +937,7 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
-            const baris = e.target.result.split(/
-?
-/);
+            const baris = e.target.result.split(/\r?\n/);
             let jumlahMasuk = 0;
             for (let i = 1; i < baris.length; i++) {
                 if (!baris[i].trim()) continue;
@@ -1007,7 +1008,7 @@
             tableHTML += `<tr><td>${i + 1}</td><td>${row.tahun}</td><td>${row.kegiatan}</td><td>${statusLsp}</td><td>'${row.nik}</td><td>${row.nama}</td><td>${row.jk}</td><td>${row.kecamatan || '-'}</td><td>${row.alamat}</td><td>'${row.telp}</td><td>${row.pendidikan}</td><td>${row.pekerjaan}</td><td>${row.lembaga}</td></tr>`;
         });
         tableHTML += `</tbody></table>`;
-        const blob = new Blob(['﻿', tableHTML], { type: 'application/vnd.ms-excel' });
+        const blob = new Blob(['\ufeff', tableHTML], { type: 'application/vnd.ms-excel' });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = `Rekap_SDM_Pariwisata_Wakatobi_${tahun}.xls`;
